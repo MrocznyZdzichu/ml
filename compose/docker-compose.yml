@@ -1,0 +1,20 @@
+name: mlops
+
+services:
+  db-prod:
+    image: "gvenzl/oracle-xe:21-slim"
+    ports:
+      - "4040:1521"
+    environment:
+      ORACLE_PASSWORD: admin
+    volumes:
+      - D:\projekty-projekciki\ml\db-data:/opt/oracle/oradata
+      
+  db-dev:
+    image: "gvenzl/oracle-xe:21-slim"
+    ports:
+      - "4041:1521"
+    environment:
+      ORACLE_PASSWORD: admin
+    volumes:
+      - D:\projekty-projekciki\ml\db-data-dev:/opt/oracle/oradata
