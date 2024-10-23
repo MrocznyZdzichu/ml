@@ -1,6 +1,5 @@
 import pandas as pd
 
-
 def load_tabular_dataset(dbm, dataset_name):
     """
     Loads a dataset into a pandas DataFrame based on metadata from the DATASETS and DATASET_DETAILS_TAB tables.
@@ -14,9 +13,13 @@ def load_tabular_dataset(dbm, dataset_name):
     """
 
     dataset_query = """
-    SELECT LOCATION FROM MLAPP.DATASETS WHERE NAME = :dataset_name
+    SELECT LOCATION, HEADERS_IN_SOURCE 
+    FROM MLAPP.DATASETS 
+    WHERE NAME = :dataset_name
     """
-    dataset_location = dbm.run_query(dataset_query, {'dataset_name': dataset_name})[0][0]
+    dataset_info = dbm.run_query(dataset_query, {'dataset_name': dataset_name})[0]
+    dataset_location = dataset_info[0]
+    headers_in_source = dataset_info[1]
 
     columns_query = """
     SELECT COLUMN_NAME, DATATYPE 
@@ -29,9 +32,12 @@ def load_tabular_dataset(dbm, dataset_name):
     column_names = [col[0] for col in columns_info]
     dtypes = {col[0]: col[1] for col in columns_info}
 
-    dtype_mapping = {'float': 'float64', 'string': 'object'}  # Map SQL types to pandas dtypes
+    dtype_mapping = {'float': 'float64', 'string': 'object', 'int': 'float64'}
     pandas_dtypes = {col: dtype_mapping[dtypes[col]] for col in dtypes}
 
-    df = pd.read_csv(dataset_location, names=column_names, dtype=pandas_dtypes)
-    
+    if headers_in_source == 1:
+        df = pd.read_csv(dataset_location, dtype=pandas_dtypes, header=0) 
+    else:
+        df = pd.read_csv(dataset_location, names=column_names, dtype=pandas_dtypes)
+
     return df

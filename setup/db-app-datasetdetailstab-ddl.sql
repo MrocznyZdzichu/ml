@@ -3,7 +3,6 @@ CREATE TABLE MLAPP.DATASET_DETAILS_TAB (
     DATASET_NAME VARCHAR2(64),
     COLUMN_NAME VARCHAR2(64) NOT NULL,
     DATATYPE VARCHAR2(64) NOT NULL,
-    DATAROLE VARCHAR2(20) CHECK (DATAROLE IN ('input', 'target', 'id', 'time', null)),
     DATALEVEL VARCHAR2(20) CHECK (DATALEVEL IN ('category', 'ranking', 'value', null)),
     COLUMN_ORDER number not null
 );
