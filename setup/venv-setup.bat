@@ -35,8 +35,10 @@ docker exec -i %DB_DEV_CONTAINER% sqlplus sys/admin as sysdba < db-app-user.sql
 docker exec -i %DB_DEV_CONTAINER% sqlplus sys/admin as sysdba < db-app-dataset-ddl.sql
 docker exec -i %DB_DEV_CONTAINER% sqlplus sys/admin as sysdba < db-app-datasetdetailstab-ddl.sql
 docker exec -i %DB_DEV_CONTAINER% sqlplus sys/admin as sysdba < db-app-models-ddl.sql
+docker exec -i %DB_DEV_CONTAINER% sqlplus sys/admin as sysdba < db-app-data-roles-models.sql
 
 docker exec -i %DB_PROD_CONTAINER% sqlplus sys/admin as sysdba < db-app-user.sql
 docker exec -i %DB_PROD_CONTAINER% sqlplus sys/admin as sysdba < db-app-dataset-ddl.sql
 docker exec -i %DB_PROD_CONTAINER% sqlplus sys/admin as sysdba < db-app-datasetdetailstab-ddl.sql
 docker exec -i %DB_PROD_CONTAINER% sqlplus sys/admin as sysdba < db-app-models-ddl.sql
+docker exec -i %DB_PROD_CONTAINER% sqlplus sys/admin as sysdba < db-app-data-roles-models.sql

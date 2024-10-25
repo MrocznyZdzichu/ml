@@ -8,8 +8,8 @@ def add_tab_details(dbm, dataset_name, columns_dict):
     """
     
     insert_query = """
-    INSERT INTO MLAPP.DATASET_DETAILS_TAB (DATASET_NAME, COLUMN_NAME, DATATYPE, DATAROLE, DATALEVEL, COLUMN_ORDER)
-    VALUES (:dataset_name, :column_name, :datatype, :datarole, :datalevel, :column_order)
+    INSERT INTO MLAPP.DATASET_DETAILS_TAB (DATASET_NAME, COLUMN_NAME, DATATYPE, DATALEVEL, COLUMN_ORDER)
+    VALUES (:dataset_name, :column_name, :datatype, :datalevel, :column_order)
     """
 
     for column in columns_dict:
@@ -20,7 +20,6 @@ def add_tab_details(dbm, dataset_name, columns_dict):
             'dataset_name': dataset_name,
             'column_name': column['column_name'],
             'datatype': column.get('datatype'),
-            'datarole': column.get('datarole'),  
             'datalevel': column.get('datalevel') ,
             'column_order': column['column_order']
         }

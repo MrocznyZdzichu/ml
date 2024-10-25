@@ -1,7 +1,7 @@
 from datetime import datetime
 
 
-def register_dataset(dbm, name, type, location, is_structured=None, is_tabelaric=None, description=None):
+def register_dataset(dbm, name, type, location, has_header, is_structured=None, is_tabelaric=None, description=None):
     """
     Registers a new dataset in the database by inserting its details into the 'DATASETS' table.
 
@@ -31,13 +31,14 @@ def register_dataset(dbm, name, type, location, is_structured=None, is_tabelaric
         is_tabelaric = is_structured
 
     insert_query = """
-            INSERT INTO DATASETS (NAME, TYPE, LOCATION, IS_STRUCTURED, IS_TABELARIC, DESCRIPTION, IS_ACTIVE)
-            VALUES (:name, :type, :location, :is_structured, :is_tabelaric, :description, :is_active)
+            INSERT INTO DATASETS (NAME, TYPE, LOCATION, IS_STRUCTURED, IS_TABELARIC, HEADERS_IN_SOURCE, DESCRIPTION, IS_ACTIVE)
+            VALUES (:name, :type, :location, :is_structured, :is_tabelaric, :has_header, :description, :is_active)
     """
     data_dict = {
         'name': name,
         'type': type,
         'location': location,
+        'has_header': has_header,
         'is_structured': is_structured,
         'is_tabelaric': is_tabelaric,
         'description': description,
