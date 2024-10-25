@@ -4,8 +4,7 @@ CREATE TABLE MLAPP.MODELS (
     ESTIMATOR_CLASS VARCHAR2(255) NOT NULL,
     DATASET_NAME VARCHAR2(64) NOT NULL,  -- Powi¹zane z tabel¹ DATASETS
     ESTIMATOR_PARAMETERS CLOB,  -- JSON or serialized parameters
-    FEATURES CLOB,  -- JSON or serialized list of feature column names
-    TARGET_COLUMN VARCHAR2(255) NOT NULL,
+    LOCALIZATION varchar2(512),
     CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UPDATED_AT TIMESTAMP,
     DELETED_AT TIMESTAMP,  -- Kolumna oznaczaj¹ca usuniêcie modelu
