@@ -2,7 +2,7 @@ import os
 import json
 import joblib
 
-
+from MLOps.CodeGeneration import BatchScoreCodeGenerator
 _model_store_dir = 'ModelsRepository'
 
 
@@ -69,83 +69,16 @@ class Model:
             os.makedirs(specific_dir)
 
     def generate_batch_score_code(self):
-        """Generates a score_batch.py file for batch scoring."""
-        
-        # Wybierz kolumny o roli 'input'
+        """Generates a scoring script using BatchScoreCodeGenerator."""
+        # Select columns with the role 'input'
         required_features = [feature for feature, role in self.__dataroles.items() if role == 'input']
         
-        code = f"""
-import os
-import pandas as pd
-import joblib
-import sys
-
-# Change working directory two levels up to access required packages
-os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-sys.path.insert(0, os.getcwd())  # Add the new working directory to sys.path
-
-# Define paths
-MODEL_PATH = os.path.join('{_model_store_dir}', '{self.__name}', '{self.__name}_model_object.joblib')
-OUTPUT_PATH = os.path.join('{_model_store_dir}', '{self.__name}', '{self.__name}_batch_predictions.csv')
-
-# Required features
-REQUIRED_FEATURES = {required_features}
-
-def load_model():
-    # Load the model from file
-    model = joblib.load(MODEL_PATH)
-    return model
-
-def validate_input_data(data):
-    # Validate the input data for required features.
-    missing_features = [feature for feature in REQUIRED_FEATURES if feature not in data.columns]
-    if missing_features:
-        raise ValueError(f"Input data is missing the following required features: {{missing_features}}")
-    
-    return data[REQUIRED_FEATURES]
-
-def score_batch(input_data_path, has_headers=True):
-    # Load input data
-    if has_headers:
-        data = pd.read_csv(input_data_path)
-    else:
-        # Load CSV without headers
-        data = pd.read_csv(input_data_path, header=None)
-
-        # Check if the number of columns matches the number of required features
-        if data.shape[1] != len(REQUIRED_FEATURES):
-            raise ValueError(f"The number of columns in the CSV ({{data.shape[1]}}) does not match the number of required input features ({{len(REQUIRED_FEATURES)}}).")
-
-        # Print a warning about missing headers
-        print("Warning: The provided CSV does not contain headers. Assuming the columns are in the correct order.")
-
-        # Create a DataFrame with required feature names
-        data.columns = REQUIRED_FEATURES  # Set column names to match required features
-
-    # Validate and filter input data
-    data = validate_input_data(data)
-    
-    # Load the model
-    model = load_model()
-
-    # Make predictions
-    predictions = model.predict(data)
-    
-    # Save predictions to CSV
-    output_df = pd.DataFrame(predictions, columns=['prediction'])
-    output_df.to_csv(OUTPUT_PATH, index=False)
-    print(f"Predictions saved to {{OUTPUT_PATH}}")
-
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description="Batch scoring")
-    parser.add_argument("input_data_path", type=str, help="Path to input data CSV")
-    parser.add_argument("--no-headers", action='store_true', help="Specify if the input CSV does not contain headers")
-    args = parser.parse_args()
-
-    # Determine if the CSV has headers based on the command-line argument
-    score_batch(args.input_data_path, has_headers=not args.no_headers)
-"""
+        # Create a BatchScoreCodeGenerator object
+        code_generator = BatchScoreCodeGenerator(self.__name, required_features)
+        
+        # Generate code
+        code = code_generator.generate_code()
+        
         # Define the path to save the generated script
         script_path = os.path.join(_model_store_dir, self.__name, 'score_batch.py')
         
