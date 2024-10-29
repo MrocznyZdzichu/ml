@@ -72,9 +72,10 @@ class Model:
         """Generates a scoring script using BatchScoreCodeGenerator."""
         # Select columns with the role 'input'
         required_features = [feature for feature, role in self.__dataroles.items() if role == 'input']
+        target_name       = [feature for feature, role in self.__dataroles.items() if role == 'target'][0]
         
         # Create a BatchScoreCodeGenerator object
-        code_generator = BatchScoreCodeGenerator(self.__name, required_features)
+        code_generator = BatchScoreCodeGenerator(self.__name, required_features, target_name)
         
         # Generate code
         code = code_generator.generate_code()

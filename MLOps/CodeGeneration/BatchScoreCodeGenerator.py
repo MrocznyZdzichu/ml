@@ -1,11 +1,14 @@
+from datetime import datetime
+
 from .CodeGenerator import CodeGenerator
 _model_store_dir = 'ModelsRepository'
 
 
 class BatchScoreCodeGenerator(CodeGenerator):
-    def __init__(self, model_name, required_features):
+    def __init__(self, model_name, required_features, target):
         self.model_name = model_name
         self.required_features = required_features
+        self.target = target
 
     def generate_code(self):
         """Generates the batch scoring script code."""
@@ -15,13 +18,19 @@ import pandas as pd
 import joblib
 import sys
 
+os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__))))
+if not os.path.exists('score-results'):
+    os.makedirs('score-results')
+if not os.path.exists(os.path.join('score-results', 'batch')):
+    os.makedirs(os.path.join('score-results', 'batch'))
+
 # Change working directory two levels up to access required packages
 os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 sys.path.insert(0, os.getcwd())  # Add the new working directory to sys.path
 
 # Define paths
 MODEL_PATH = os.path.join('{_model_store_dir}', '{self.model_name}', '{self.model_name}_model_object.joblib')
-OUTPUT_PATH = os.path.join('{_model_store_dir}', '{self.model_name}', '{self.model_name}_batch_predictions.csv')
+OUTPUT_PATH = os.path.join('{_model_store_dir}', '{self.model_name}', 'score-results', 'batch', f'batch_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv')
 
 # Required features
 REQUIRED_FEATURES = {self.required_features}
@@ -67,7 +76,7 @@ def score_batch(input_data_path, has_headers=True):
     predictions = model.predict(data)
     
     # Save predictions to CSV
-    output_df = pd.DataFrame(predictions, columns=['prediction'])
+    output_df = pd.DataFrame(predictions, columns=[f'{self.target}'])
     output_df.to_csv(OUTPUT_PATH, index=False)
     print(f"Predictions saved to {{OUTPUT_PATH}}")
 
