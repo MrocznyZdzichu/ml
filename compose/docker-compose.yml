@@ -8,7 +8,7 @@ services:
     environment:
       ORACLE_PASSWORD: admin
     volumes:
-      - D:\projekty-projekciki\ml\db-data:/opt/oracle/oradata
+      - ..\db-data:/opt/oracle/oradata
       
   db-dev:
     image: "gvenzl/oracle-xe:21-slim"
@@ -17,4 +17,4 @@ services:
     environment:
       ORACLE_PASSWORD: admin
     volumes:
-      - D:\projekty-projekciki\ml\db-data-dev:/opt/oracle/oradata
+      - ..\db-data-dev:/opt/oracle/oradata
