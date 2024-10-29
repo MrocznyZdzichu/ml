@@ -2,7 +2,7 @@ import os
 import json
 import joblib
 
-
+from MLOps.CodeGeneration import BatchScoreCodeGenerator
 _model_store_dir = 'ModelsRepository'
 
 
@@ -67,3 +67,27 @@ class Model:
         specific_dir = os.path.join(_model_store_dir, self.__name)
         if not os.path.exists(os.path.join(specific_dir)):
             os.makedirs(specific_dir)
+
+    def generate_batch_score_code(self):
+        """Generates a scoring script using BatchScoreCodeGenerator."""
+        # Select columns with the role 'input'
+        required_features = [feature for feature, role in self.__dataroles.items() if role == 'input']
+        target_name       = [feature for feature, role in self.__dataroles.items() if role == 'target'][0]
+        
+        # Create a BatchScoreCodeGenerator object
+        code_generator = BatchScoreCodeGenerator(self.__name, required_features, target_name)
+        
+        # Generate code
+        code = code_generator.generate_code()
+        
+        # Define the path to save the generated script
+        script_path = os.path.join(_model_store_dir, self.__name, 'score_batch.py')
+        
+        # Write the code to the script file
+        with open(script_path, 'w') as f:
+            f.write(code)
+        
+        # Print information with environment activation and deactivation for PowerShell
+        print(f"Batch scoring script generated at: \"{script_path}\"")
+        print("To run the script, please activate your virtual environment located in 'mlops-env', execute the script, and then deactivate the environment as follows:")
+        print(f".\\mlops-env\\Scripts\\Activate\npython \"{script_path}\" \"<path/to/input_data.csv>\" [--no-headers]\ndeactivate")
