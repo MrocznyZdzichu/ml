@@ -2,7 +2,7 @@ import os
 import json
 import joblib
 
-from MLOps.CodeGeneration import BatchScoreCodeGenerator
+from MLOps.CodeGeneration import BatchScoreCodeGenerator, OnlineScoreCodeGenerator
 _model_store_dir = 'ModelsRepository'
 
 
@@ -91,3 +91,27 @@ class Model:
         print(f"Batch scoring script generated at: \"{script_path}\"")
         print("To run the script, please activate your virtual environment located in 'mlops-env', execute the script, and then deactivate the environment as follows:")
         print(f".\\mlops-env\\Scripts\\Activate\npython \"{script_path}\" \"<path/to/input_data.csv>\" [--no-headers]\ndeactivate")
+
+    def generate_online_score_code(self):
+        """Generates an online scoring script using OnlineScoreCodeGenerator."""
+        # Select columns with the role 'input'
+        required_features = [feature for feature, role in self.__dataroles.items() if role == 'input']
+        target_name = [feature for feature, role in self.__dataroles.items() if role == 'target'][0]
+        
+        # Create an OnlineScoreCodeGenerator object
+        code_generator = OnlineScoreCodeGenerator(self.__name, required_features, target_name)
+        
+        # Generate code
+        code = code_generator.generate_code()
+        
+        # Define the path to save the generated script
+        script_path = os.path.join(_model_store_dir, self.__name, 'online_service.py')
+        
+        # Write the code to the script file
+        with open(script_path, 'w') as f:
+            f.write(code)
+        
+        # Print information with environment activation and deactivation for PowerShell
+        print(f"Online scoring service script generated at: \"{script_path}\"")
+        print("To run the service, activate your virtual environment located in 'mlops-env' and execute the script as follows:")
+        print(f".\\mlops-env\\Scripts\\Activate\npython \"{script_path}\"\ndeactivate")

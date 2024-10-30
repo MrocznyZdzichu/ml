@@ -1,0 +1,21 @@
+{
+    "data": [
+        {
+            "Cereal Name": "100%_Bran",
+            "Manufacturer": "Nabisco",
+            "Type": "C",
+            "Calories": 70,
+            "Protein (g)": 4,
+            "Fat": 1,
+            "Sodium": 130,
+            "Dietary Fiber": 10,
+            "Carbs": 5,
+            "Sugars": 6,
+            "Display Shelf": 3,
+            "Potassium": 280,
+            "Vitamins and Minerals": 25,
+            "Serving Size Weight": 1,
+            "Cups per Serving": 0.33
+        }
+    ]
+}
