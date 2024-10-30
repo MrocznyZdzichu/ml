@@ -114,4 +114,4 @@ class Model:
         # Print information with environment activation and deactivation for PowerShell
         print(f"Online scoring service script generated at: \"{script_path}\"")
         print("To run the service, activate your virtual environment located in 'mlops-env' and execute the script as follows:")
-        print(f".\\mlops-env\\Scripts\\Activate\npython \"{script_path}\"\ndeactivate")
+        print(f".\\mlops-env\\Scripts\\Activate\npython \"{script_path}\" --port <port_number>\ndeactivate")
