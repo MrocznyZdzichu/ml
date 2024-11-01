@@ -1,2 +1,3 @@
 from .BatchScoreCodeGenerator import BatchScoreCodeGenerator
 from .OnlineScoreCodeGenerator import OnlineScoreCodeGenerator
+from .DockerScoreCodeGenerator import DockerScoreCodeGenerator

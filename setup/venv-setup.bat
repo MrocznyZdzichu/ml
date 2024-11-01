@@ -19,14 +19,13 @@ pip install ipykernel
 jupyter kernelspec remove -f -y mlops-env
 python -m ipykernel install --user --name=mlops-env
 
-echo Creating databases
-cd compose
+echo Creating databases and registered services if any
 
-docker compose up -d
+python run_compose.py
 timeout /t 60 /nobreak
 
 echo Configuring the databases
-cd ..\setup
+cd setup
 
 set "DB_DEV_CONTAINER=mlops-db-dev-1"
 set "DB_PROD_CONTAINER=mlops-db-prod-1"
