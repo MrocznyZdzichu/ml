@@ -2,7 +2,7 @@ import os
 import json
 import joblib
 
-from MLOps.CodeGeneration import BatchScoreCodeGenerator
+from MLOps.CodeGeneration import BatchScoreCodeGenerator, OnlineScoreCodeGenerator, DockerScoreCodeGenerator
 _model_store_dir = 'ModelsRepository'
 
 
@@ -91,3 +91,54 @@ class Model:
         print(f"Batch scoring script generated at: \"{script_path}\"")
         print("To run the script, please activate your virtual environment located in 'mlops-env', execute the script, and then deactivate the environment as follows:")
         print(f".\\mlops-env\\Scripts\\Activate\npython \"{script_path}\" \"<path/to/input_data.csv>\" [--no-headers]\ndeactivate")
+
+    def generate_online_score_code(self):
+        """Generates an online scoring script using OnlineScoreCodeGenerator."""
+        # Select columns with the role 'input'
+        required_features = [feature for feature, role in self.__dataroles.items() if role == 'input']
+        target_name = [feature for feature, role in self.__dataroles.items() if role == 'target'][0]
+        
+        # Create an OnlineScoreCodeGenerator object
+        code_generator = OnlineScoreCodeGenerator(self.__name, required_features, target_name)
+        
+        # Generate code
+        code = code_generator.generate_code()
+        
+        # Define the path to save the generated script
+        script_path = os.path.join(_model_store_dir, self.__name, 'online_service.py')
+        
+        # Write the code to the script file
+        with open(script_path, 'w') as f:
+            f.write(code)
+        
+        # Print information with environment activation and deactivation for PowerShell
+        print(f"Online scoring service script generated at: \"{script_path}\"")
+        print("To run the service, activate your virtual environment located in 'mlops-env' and execute the script as follows:")
+        print(f".\\mlops-env\\Scripts\\Activate\npython \"{script_path}\" --port <port_number>\ndeactivate")
+
+    def generate_docker_score_code(self, container_port=8000):
+        """Generates a Dockerized scoring service script using DockerScoreCodeGenerator with a specified container port."""
+        required_features = [feature for feature, role in self.__dataroles.items() if role == 'input']
+        target_name = [feature for feature, role in self.__dataroles.items() if role == 'target'][0]
+
+        code_generator = DockerScoreCodeGenerator(self.__name, required_features, target_name, container_port)
+        
+        code_generator.generate_code()
+
+        model_dir = os.path.join(_model_store_dir, self.__name)
+        dockerfile_path = os.path.join(model_dir, 'Dockerfile')
+        app_script_path = os.path.join(model_dir, 'app.py')
+        docker_compose_path = os.path.join(model_dir, 'docker-compose.override.yml')
+        
+        service_name = self.__name.replace(" ", "-").lower()
+        
+        print(f"Dockerized scoring service generated for model '{self.__name}' in 'ModelsRepository\\{self.__name}'.")
+        print("Files generated:")
+        print(f"- Dockerfile: ModelsRepository\\{self.__name}\\Dockerfile")
+        print(f"- FastAPI app script: ModelsRepository\\{self.__name}\\app.py")
+        print(f"- Docker Compose override configuration: ModelsRepository\\{self.__name}\\docker-compose.override.yml")
+        print("To deploy the service in Docker, build the image and start the container with Docker Compose:")
+        print(f'docker-compose -f "ModelsRepository\\{self.__name}\\docker-compose.override.yml" up --build "{service_name}-service"')
+        print('or use run_compose.py script to run all overrides')
+
+

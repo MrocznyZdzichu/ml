@@ -1,16 +1,16 @@
-import cx_Oracle
+import oracledb
 
 
 class DBManager:
     def __init__(self, dev_db=False):
-        port = 4040 if dev_db == False else 4041
+        port = 4040 if not dev_db else 4041
         
         self.__username = 'MLAPP'
         self.__password = 'ASDFqwer!@34'
         self.__dsn = 'localhost:' + str(port) + '/xe'
 
     def __yield_connection(self):
-        return cx_Oracle.connect(self.__username, self.__password, self.__dsn)
+        return oracledb.connect(user=self.__username, password=self.__password, dsn=self.__dsn)
 
     def run_query(self, query, query_details=None):
         with self.__yield_connection() as connection:

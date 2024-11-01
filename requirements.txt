@@ -1,4 +1,6 @@
-#Be careful for it requires an installed and configured Oracle Instant Client
-cx_oracle==8.3.0
+oracledb==2.4.1
 pandas==2.2.3
 scikit-learn==1.5.2
+fastapi==0.115.4
+uvicorn==0.32.0
+requests==2.32.3
