@@ -4,21 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Repository</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7f8;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            color: #4a90e2;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .button {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #357ab8;
+        }
+
+        .file-select, .file-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
         #message {
             margin-top: 20px;
             padding: 10px;
-            border: 1px solid;
             border-radius: 5px;
-            display: none; /* Initially hidden */
+            display: none;
         }
         .success {
-            border-color: green;
+            border: 1px solid green;
             background-color: #e6ffed;
             color: green;
         }
         .error {
-            border-color: red;
+            border: 1px solid red;
             background-color: #ffe6e6;
             color: red;
         }
@@ -28,22 +74,35 @@
             font-weight: bold;
             margin-left: 10px;
         }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            .button {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>File Repository</h1>
-    
-    <h2>Upload File</h2>
-    <input type="file" id="file-input">
-    <button id="upload-button">Upload File</button>
-    
-    <h2>Delete File</h2>
-    <select id="file-select" name="file">
-        <option value="">Select a file to delete</option>
-    </select>
-    <button id="delete-button" disabled>Delete File</button>
-    
-    <div id="message"></div>
+    <div class="container">
+        <h1>File Repository</h1>
+        
+        <h2>Upload File</h2>
+        <input type="file" id="file-input" class="file-input">
+        <button id="upload-button" class="button">Upload File</button>
+        
+        <h2>Delete File</h2>
+        <select id="file-select" name="file" class="file-select">
+            <option value="">Select a file to delete</option>
+        </select>
+        <button id="delete-button" class="button" disabled>Delete File</button>
+        
+        <div id="message"></div>
+    </div>
 
     <script>
         async function fetchFiles() {

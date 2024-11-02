@@ -5,48 +5,152 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register Dataset</title>
     <style>
-        .hidden { display: none; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        h2 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .message {
+            text-align: center;
+            font-weight: bold;
+            color: green;
+            background-color: #e6ffe6;
+            border: 1px solid #b3ffb3;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+        }
+
+        form {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px 30px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+
+        label {
+            font-weight: bold;
+            color: #555;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"], input[type="file"], input[type="number"], select, textarea {
+            width: 100%;
+            padding: 8px 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #333;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus, input[type="file"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+
+        button, input[type="submit"] {
+            background-color: #4a90e2;
+            color: white;
+            font-size: 14px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        button:hover, input[type="submit"]:hover {
+            background-color: #357ab7;
+        }
+
+        .column-entry {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fafafa;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .column-metadata {
+            color: #333;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
+    {% if message %}
+        <div class="message">{{ message }}</div>
+    {% endif %}
+
     <h2>Register New Dataset</h2>
+    
     <form method="post" action="/register_dataset" enctype="multipart/form-data" onsubmit="return validateForm()">
-        <label for="name">Name:</label><br>
-        <input type="text" id="name" name="name" required><br><br>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
         
-        <label for="type">Type:</label><br>
+        <label for="type">Type:</label>
         <select id="type" name="type" required>
             <option value="csv">CSV</option>
-        </select><br><br>
+        </select>
         
-        <label for="file">Location (Choose a file):</label><br>
-        <input type="file" id="file" name="file" required><br><br>
+        <label for="file">Location (Choose a file):</label>
+        <input type="file" id="file" name="file" required>
         
-        <label for="has_header">Headers in Source:</label><br>
+        <label for="has_header">Headers in Source:</label>
         <select id="has_header" name="has_header" required>
             <option value="1">Yes</option>
             <option value="0">No</option>
-        </select><br><br>
+        </select>
         
-        <label for="is_structured">Is Structured:</label><br>
+        <label for="is_structured">Is Structured:</label>
         <select id="is_structured" name="is_structured">
             <option value="">Not specified</option>
             <option value="1">Yes</option>
             <option value="0">No</option>
-        </select><br><br>
+        </select>
         
-        <label for="is_tabelaric">Is Tabelaric:</label><br>
+        <label for="is_tabelaric">Is Tabelaric:</label>
         <select id="is_tabelaric" name="is_tabelaric">
             <option value="">Not specified</option>
             <option value="1">Yes</option>
             <option value="0">No</option>
-        </select><br><br>
+        </select>
         
-        <label for="description">Description:</label><br>
-        <textarea id="description" name="description" rows="4" cols="50"></textarea><br><br>
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" rows="4"></textarea>
 
-        <label for="json_file">Column Metadata JSON (optional):</label><br>
-        <input type="file" id="json_file" name="json_file" accept=".json" onchange="toggleManualInput()"><br><br>
+        <label for="json_file">Column Metadata JSON (optional):</label>
+        <input type="file" id="json_file" name="json_file" accept=".json" onchange="toggleManualInput()">
 
         <h3 class="column-metadata" id="column-metadata">Dataset Columns</h3>
         <div id="columns-container">
@@ -79,12 +183,8 @@
         <input type="submit" value="Register Dataset">
     </form>
 
-    {% if message %}
-        <p><strong>{{ message }}</strong></p>
-    {% endif %}
-
     <script>
-        let columnOrder = 1;  // Initialize order for new columns
+        let columnOrder = 1;
 
         function addColumn() {
             const container = document.getElementById("columns-container");
@@ -121,20 +221,18 @@
             const columnEntries = document.querySelectorAll('.column-entry');
             
             if (jsonFileInput.files.length > 0) {
-                // If JSON file is provided, hide manual entry
                 columnMetadata.classList.add("hidden");
                 columnEntries.forEach(entry => {
                     entry.querySelectorAll('input, select').forEach(input => {
-                        input.required = false;  // Make fields non-required
+                        input.required = false;
                     });
                     entry.classList.add("hidden");
                 });
             } else {
-                // If no JSON file is provided, show manual entry
                 columnMetadata.classList.remove("hidden");
                 columnEntries.forEach(entry => {
                     entry.querySelectorAll('input, select').forEach(input => {
-                        input.required = true;  // Make fields required again
+                        input.required = true;
                     });
                     entry.classList.remove("hidden");
                 });
@@ -145,23 +243,14 @@
             const jsonFileInput = document.getElementById("json_file");
             const columnEntries = document.querySelectorAll('.column-entry');
 
-            console.log('Validating form...');
-            console.log('JSON file present:', jsonFileInput.files.length > 0);
-
             if (jsonFileInput.files.length > 0) {
-                // If JSON file is provided, allow submission without checking manual columns
-                return true; // Allow submission if JSON is provided
+                return true;
             } else {
-                // Ensure manual entries are filled if no JSON is provided
                 let allEntriesValid = true;
                 columnEntries.forEach(entry => {
                     const columnName = entry.querySelector('input[name="column_names"]').value;
                     const dataType = entry.querySelector('select[name="data_types"]').value;
                     const columnOrder = entry.querySelector('input[name="column_orders"]').value;
-
-                    console.log('Column Name:', columnName);
-                    console.log('Data Type:', dataType);
-                    console.log('Column Order:', columnOrder);
 
                     if (!columnName || !dataType || !columnOrder) {
                         allEntriesValid = false;
@@ -169,11 +258,11 @@
                 });
 
                 if (!allEntriesValid) {
-                    alert('Please fill all required fields for manual column entries or provide a JSON file.');
-                    return false; // Prevent form submission
+                    alert('Please fill all required fields for manual column input.');
+                    return false;
                 }
             }
-            return true;  // Allow form submission
+            return true;
         }
     </script>
 </body>
