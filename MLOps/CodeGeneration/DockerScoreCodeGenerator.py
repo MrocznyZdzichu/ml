@@ -24,10 +24,11 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY ["./ModelsRepository/{self.model_name}/", "/app"]
 COPY ["./requirements.txt", "/app"]
-COPY ["./MLOps", "/app/MLOps"]
 RUN ["pip", "install", "--no-cache-dir", "-r", "/app/requirements.txt"]
+
+COPY ["./MLOps", "/app/MLOps"]
+COPY ["./ModelsRepository/{self.model_name}/", "/app"]
 
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "{self.container_port}"]
 """

@@ -1,0 +1,7 @@
+services:
+  data-register-app:
+    build:
+      context: ..
+      dockerfile: 'WebUI/DataRegister/Dockerfile'
+    ports:
+      - "5000:5000"

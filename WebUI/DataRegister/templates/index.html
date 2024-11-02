@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Dataset</title>
+</head>
+<body>
+    <h2>Register New Dataset</h2>
+    <form method="post" action="/register_dataset" enctype="multipart/form-data">
+        <label for="name">Name:</label><br>
+        <input type="text" id="name" name="name" required><br><br>
+        
+        <label for="type">Type:</label><br>
+        <select id="type" name="type" required>
+            <option value="csv">CSV</option>
+        </select><br><br>
+        
+        <label for="file">Location (Choose a file):</label><br>
+        <input type="file" id="file" name="file" required><br><br>
+        
+        <label for="has_header">Headers in Source:</label><br>
+        <select id="has_header" name="has_header">
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+        </select><br><br>
+        
+        <label for="is_structured">Is Structured:</label><br>
+        <select id="is_structured" name="is_structured">
+            <option value="">Not specified</option>
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+        </select><br><br>
+        
+        <label for="is_tabelaric">Is Tabelaric:</label><br>
+        <select id="is_tabelaric" name="is_tabelaric">
+            <option value="">Not specified</option>
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+        </select><br><br>
+        
+        <label for="description">Description:</label><br>
+        <textarea id="description" name="description" rows="4" cols="50"></textarea><br><br>
+
+        <h3>Dataset Columns</h3>
+        <div id="columns-container">
+            <div class="column-entry">
+                <label>Column Name:</label>
+                <input type="text" name="column_names" required>
+                
+                <label>Data Type:</label>
+                <select name="data_types" required>
+                    <option value="string">String</option>
+                    <option value="float">Float</option>
+                    <option value="int">Int</option>
+                </select>
+
+                <label>Data Level:</label>
+                <select name="data_levels">
+                    <option value="">None</option>
+                    <option value="category">Category</option>
+                    <option value="ranking">Ranking</option>
+                    <option value="value">Value</option>
+                </select>
+
+                <label>Column Order:</label>
+                <input type="number" name="column_orders" value="0" required>
+            </div>
+        </div>
+        
+        <button type="button" onclick="addColumn()">Add Another Column</button><br><br>
+        
+        <input type="submit" value="Register Dataset">
+    </form>
+
+    {% if message %}
+        <p><strong>{{ message }}</strong></p>
+    {% endif %}
+
+    <script>
+        let columnOrder = 1;  // Initialize order for new columns
+
+        function addColumn() {
+            const container = document.getElementById("columns-container");
+            const entry = document.createElement("div");
+            entry.className = "column-entry";
+            entry.innerHTML = `
+                <label>Column Name:</label>
+                <input type="text" name="column_names" required>
+                
+                <label>Data Type:</label>
+                <select name="data_types" required>
+                    <option value="string">String</option>
+                    <option value="float">Float</option>
+                    <option value="int">Int</option>
+                </select>
+
+                <label>Data Level:</label>
+                <select name="data_levels">
+                    <option value="">None</option>
+                    <option value="category">Category</option>
+                    <option value="ranking">Ranking</option>
+                    <option value="value">Value</option>
+                </select>
+
+                <label>Column Order:</label>
+                <input type="number" name="column_orders" value="${columnOrder++}" required>
+            `;
+            container.appendChild(entry);
+        }
+    </script>
+</body>
+</html>
