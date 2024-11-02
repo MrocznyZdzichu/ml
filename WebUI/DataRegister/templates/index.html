@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Dataset</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        h2 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .message {
+            text-align: center;
+            font-weight: bold;
+            color: green;
+            background-color: #e6ffe6;
+            border: 1px solid #b3ffb3;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+        }
+
+        form {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px 30px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+
+        label {
+            font-weight: bold;
+            color: #555;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"], input[type="file"], input[type="number"], select, textarea {
+            width: 100%;
+            padding: 8px 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #333;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus, input[type="file"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+
+        button, input[type="submit"] {
+            background-color: #4a90e2;
+            color: white;
+            font-size: 14px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        button:hover, input[type="submit"]:hover {
+            background-color: #357ab7;
+        }
+
+        .column-entry {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fafafa;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .column-metadata {
+            color: #333;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    {% if message %}
+        <div class="message">{{ message }}</div>
+    {% endif %}
+
+    <h2>Register New Dataset</h2>
+    
+    <form method="post" action="/register_dataset" enctype="multipart/form-data" onsubmit="return validateForm()">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        
+        <label for="type">Type:</label>
+        <select id="type" name="type" required>
+            <option value="csv">CSV</option>
+        </select>
+        
+        <label for="file">Location (Choose a file):</label>
+        <input type="file" id="file" name="file" required>
+        
+        <label for="has_header">Headers in Source:</label>
+        <select id="has_header" name="has_header" required>
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+        </select>
+        
+        <label for="is_structured">Is Structured:</label>
+        <select id="is_structured" name="is_structured">
+            <option value="">Not specified</option>
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+        </select>
+        
+        <label for="is_tabelaric">Is Tabelaric:</label>
+        <select id="is_tabelaric" name="is_tabelaric">
+            <option value="">Not specified</option>
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+        </select>
+        
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" rows="4"></textarea>
+
+        <label for="json_file">Column Metadata JSON (optional):</label>
+        <input type="file" id="json_file" name="json_file" accept=".json" onchange="toggleManualInput()">
+
+        <h3 class="column-metadata" id="column-metadata">Dataset Columns</h3>
+        <div id="columns-container">
+            <div class="column-entry">
+                <label>Column Name:</label>
+                <input type="text" name="column_names" required>
+                
+                <label>Data Type:</label>
+                <select name="data_types" required>
+                    <option value="string">String</option>
+                    <option value="float">Float</option>
+                    <option value="int">Int</option>
+                </select>
+
+                <label>Data Level:</label>
+                <select name="data_levels">
+                    <option value="">None</option>
+                    <option value="category">Category</option>
+                    <option value="ranking">Ranking</option>
+                    <option value="value">Value</option>
+                </select>
+
+                <label>Column Order:</label>
+                <input type="number" name="column_orders" value="0" required>
+            </div>
+        </div>
+        
+        <button type="button" onclick="addColumn()">Add Another Column</button><br><br>
+        
+        <input type="submit" value="Register Dataset">
+    </form>
+
+    <script>
+        let columnOrder = 1;
+
+        function addColumn() {
+            const container = document.getElementById("columns-container");
+            const entry = document.createElement("div");
+            entry.className = "column-entry";
+            entry.innerHTML = `
+                <label>Column Name:</label>
+                <input type="text" name="column_names" required>
+                
+                <label>Data Type:</label>
+                <select name="data_types" required>
+                    <option value="string">String</option>
+                    <option value="float">Float</option>
+                    <option value="int">Int</option>
+                </select>
+
+                <label>Data Level:</label>
+                <select name="data_levels">
+                    <option value="">None</option>
+                    <option value="category">Category</option>
+                    <option value="ranking">Ranking</option>
+                    <option value="value">Value</option>
+                </select>
+
+                <label>Column Order:</label>
+                <input type="number" name="column_orders" value="${columnOrder++}" required>
+            `;
+            container.appendChild(entry);
+        }
+
+        function toggleManualInput() {
+            const jsonFileInput = document.getElementById("json_file");
+            const columnMetadata = document.getElementById("column-metadata");
+            const columnEntries = document.querySelectorAll('.column-entry');
+            
+            if (jsonFileInput.files.length > 0) {
+                columnMetadata.classList.add("hidden");
+                columnEntries.forEach(entry => {
+                    entry.querySelectorAll('input, select').forEach(input => {
+                        input.required = false;
+                    });
+                    entry.classList.add("hidden");
+                });
+            } else {
+                columnMetadata.classList.remove("hidden");
+                columnEntries.forEach(entry => {
+                    entry.querySelectorAll('input, select').forEach(input => {
+                        input.required = true;
+                    });
+                    entry.classList.remove("hidden");
+                });
+            }
+        }
+
+        function validateForm() {
+            const jsonFileInput = document.getElementById("json_file");
+            const columnEntries = document.querySelectorAll('.column-entry');
+
+            if (jsonFileInput.files.length > 0) {
+                return true;
+            } else {
+                let allEntriesValid = true;
+                columnEntries.forEach(entry => {
+                    const columnName = entry.querySelector('input[name="column_names"]').value;
+                    const dataType = entry.querySelector('select[name="data_types"]').value;
+                    const columnOrder = entry.querySelector('input[name="column_orders"]').value;
+
+                    if (!columnName || !dataType || !columnOrder) {
+                        allEntriesValid = false;
+                    }
+                });
+
+                if (!allEntriesValid) {
+                    alert('Please fill all required fields for manual column input.');
+                    return false;
+                }
+            }
+            return true;
+        }
+    </script>
+</body>
+</html>

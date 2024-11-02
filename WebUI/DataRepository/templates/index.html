@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Repository</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7f8;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            color: #4a90e2;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .button {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #357ab8;
+        }
+
+        .file-select, .file-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        #message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            border: 1px solid green;
+            background-color: #e6ffed;
+            color: green;
+        }
+        .error {
+            border: 1px solid red;
+            background-color: #ffe6e6;
+            color: red;
+        }
+        .close {
+            cursor: pointer;
+            float: right;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            .button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>File Repository</h1>
+        
+        <h2>Upload File</h2>
+        <input type="file" id="file-input" class="file-input">
+        <button id="upload-button" class="button">Upload File</button>
+        
+        <h2>Delete File</h2>
+        <select id="file-select" name="file" class="file-select">
+            <option value="">Select a file to delete</option>
+        </select>
+        <button id="delete-button" class="button" disabled>Delete File</button>
+        
+        <div id="message"></div>
+    </div>
+
+    <script>
+        async function fetchFiles() {
+            const response = await fetch('/files');
+            const data = await response.json();
+            const fileSelect = document.getElementById('file-select');
+            const deleteButton = document.getElementById('delete-button');
+            const messageDiv = document.getElementById('message');
+
+            // Clear existing options
+            fileSelect.innerHTML = '';
+            messageDiv.style.display = 'none';  // Hide previous message
+
+            if (data.files.length > 0) {
+                // Enable the delete button
+                deleteButton.disabled = false;
+
+                // Populate the dropdown with files
+                data.files.forEach(file => {
+                    const option = document.createElement('option');
+                    option.value = file;
+                    option.textContent = file;
+                    fileSelect.appendChild(option);
+                });
+            } else {
+                // Disable the delete button if no files
+                deleteButton.disabled = true;
+                fileSelect.innerHTML = '<option value="">No files available</option>';
+            }
+        }
+
+        window.onload = fetchFiles;
+
+        document.getElementById('upload-button').addEventListener('click', async () => {
+            const fileInput = document.getElementById('file-input');
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = '';  // Clear previous messages
+
+            if (response.ok) {
+                const result = await response.json();
+                messageDiv.innerHTML = `<span class="success">${result.info}</span><span class="close" onclick="this.parentElement.style.display='none';">X</span>`;
+                messageDiv.style.display = 'block';  // Show message
+                fetchFiles();  // Refresh the file list
+            } else {
+                messageDiv.innerHTML = `<span class="error">Error uploading file.</span><span class="close" onclick="this.parentElement.style.display='none';">X</span>`;
+                messageDiv.style.display = 'block';  // Show message
+            }
+        });
+
+        document.getElementById('delete-button').addEventListener('click', async () => {
+            const fileSelect = document.getElementById('file-select');
+            const selectedFile = fileSelect.value;
+            const messageDiv = document.getElementById('message');
+
+            if (selectedFile) {
+                const response = await fetch(`/delete_file?file_name=${encodeURIComponent(selectedFile)}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                messageDiv.innerHTML = '';  // Clear previous messages
+
+                // Check if the response was successful
+                if (response.ok) {
+                    const result = await response.json();  // Get the response data
+                    messageDiv.innerHTML = `<span class="success">${result.message}</span><span class="close" onclick="this.parentElement.style.display='none';">X</span>`;  // Show success message
+                    messageDiv.style.display = 'block';  // Show message
+                    fetchFiles();  // Refresh the file list
+                } else {
+                    const errorData = await response.json();  // Get the error details
+                    messageDiv.innerHTML = `<span class="error">Error deleting file: ${errorData.detail}</span><span class="close" onclick="this.parentElement.style.display='none';">X</span>`;  // Show error message
+                    messageDiv.style.display = 'block';  // Show message
+                }
+            }
+        });
+    </script>
+</body>
+</html>
