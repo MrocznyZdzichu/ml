@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register Dataset</title>
+    <style>
+        .hidden { display: none; }
+    </style>
 </head>
 <body>
     <h2>Register New Dataset</h2>
-    <form method="post" action="/register_dataset" enctype="multipart/form-data">
+    <form method="post" action="/register_dataset" enctype="multipart/form-data" onsubmit="return validateForm()">
         <label for="name">Name:</label><br>
         <input type="text" id="name" name="name" required><br><br>
         
@@ -20,7 +23,7 @@
         <input type="file" id="file" name="file" required><br><br>
         
         <label for="has_header">Headers in Source:</label><br>
-        <select id="has_header" name="has_header">
+        <select id="has_header" name="has_header" required>
             <option value="1">Yes</option>
             <option value="0">No</option>
         </select><br><br>
@@ -42,7 +45,10 @@
         <label for="description">Description:</label><br>
         <textarea id="description" name="description" rows="4" cols="50"></textarea><br><br>
 
-        <h3>Dataset Columns</h3>
+        <label for="json_file">Column Metadata JSON (optional):</label><br>
+        <input type="file" id="json_file" name="json_file" accept=".json" onchange="toggleManualInput()"><br><br>
+
+        <h3 class="column-metadata" id="column-metadata">Dataset Columns</h3>
         <div id="columns-container">
             <div class="column-entry">
                 <label>Column Name:</label>
@@ -107,6 +113,67 @@
                 <input type="number" name="column_orders" value="${columnOrder++}" required>
             `;
             container.appendChild(entry);
+        }
+
+        function toggleManualInput() {
+            const jsonFileInput = document.getElementById("json_file");
+            const columnMetadata = document.getElementById("column-metadata");
+            const columnEntries = document.querySelectorAll('.column-entry');
+            
+            if (jsonFileInput.files.length > 0) {
+                // If JSON file is provided, hide manual entry
+                columnMetadata.classList.add("hidden");
+                columnEntries.forEach(entry => {
+                    entry.querySelectorAll('input, select').forEach(input => {
+                        input.required = false;  // Make fields non-required
+                    });
+                    entry.classList.add("hidden");
+                });
+            } else {
+                // If no JSON file is provided, show manual entry
+                columnMetadata.classList.remove("hidden");
+                columnEntries.forEach(entry => {
+                    entry.querySelectorAll('input, select').forEach(input => {
+                        input.required = true;  // Make fields required again
+                    });
+                    entry.classList.remove("hidden");
+                });
+            }
+        }
+
+        function validateForm() {
+            const jsonFileInput = document.getElementById("json_file");
+            const columnEntries = document.querySelectorAll('.column-entry');
+
+            console.log('Validating form...');
+            console.log('JSON file present:', jsonFileInput.files.length > 0);
+
+            if (jsonFileInput.files.length > 0) {
+                // If JSON file is provided, allow submission without checking manual columns
+                return true; // Allow submission if JSON is provided
+            } else {
+                // Ensure manual entries are filled if no JSON is provided
+                let allEntriesValid = true;
+                columnEntries.forEach(entry => {
+                    const columnName = entry.querySelector('input[name="column_names"]').value;
+                    const dataType = entry.querySelector('select[name="data_types"]').value;
+                    const columnOrder = entry.querySelector('input[name="column_orders"]').value;
+
+                    console.log('Column Name:', columnName);
+                    console.log('Data Type:', dataType);
+                    console.log('Column Order:', columnOrder);
+
+                    if (!columnName || !dataType || !columnOrder) {
+                        allEntriesValid = false;
+                    }
+                });
+
+                if (!allEntriesValid) {
+                    alert('Please fill all required fields for manual column entries or provide a JSON file.');
+                    return false; // Prevent form submission
+                }
+            }
+            return true;  // Allow form submission
         }
     </script>
 </body>

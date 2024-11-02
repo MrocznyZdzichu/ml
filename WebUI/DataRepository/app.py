@@ -1,10 +1,9 @@
 import os
 from fastapi import FastAPI, HTTPException, UploadFile, File, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
 import shutil
-
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -13,14 +12,12 @@ templates = Jinja2Templates(directory="templates")
 DATA_DIRECTORY = Path("data-repository")
 DATA_DIRECTORY.mkdir(exist_ok=True)  # Create the data directory if it doesn't exist
 
-
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     """
     Main page displaying the form for dataset registration.
     """
     return templates.TemplateResponse("index.html", {"request": request})  # Make sure to include the request here
-
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
@@ -53,3 +50,19 @@ async def delete_file(file_name: str):
     else:
         return {"error": "File not found."}, 404
 
+@app.get("/download/{file_name}")
+async def download_file(file_name: str):
+    """
+    Download a file from the data repository.
+    
+    Args:
+        file_name (str): The name of the file to be downloaded.
+        
+    Returns:
+        FileResponse: The requested file.
+    """
+    file_path = DATA_DIRECTORY / file_name
+    if file_path.is_file():
+        return FileResponse(file_path)
+    else:
+        raise HTTPException(status_code=404, detail="File not found.")
