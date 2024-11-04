@@ -33,11 +33,7 @@ async def register_dataset_form(
     is_tabelaric: Optional[int] = Form(None),
     description: Optional[str] = Form(None),
     file: UploadFile = File(...),
-    json_file: UploadFile = File(None),  # Add this line to handle the JSON file
-    column_names: List[str] = Form(...),
-    data_types: List[str] = Form(...),
-    data_levels: List[Optional[str]] = Form(...),
-    column_orders: List[int] = Form(...)
+    json_file: UploadFile = File(...),  # Zmiana: json_file jest wymagany
 ):
     print("Rejestracja datasetu została wywołana")  # Debug log
     full_file_path = UPLOAD_DIRECTORY / file.filename  # Set full path for saving the file on the server
@@ -46,29 +42,18 @@ async def register_dataset_form(
 
     columns_data = []
 
-    # Check if a JSON file was provided
-    if json_file:
-        # Read the JSON file and parse the contents
-        json_content = await json_file.read()
-        json_data = json.loads(json_content)
-        print("Dane z JSON:", json_data)  # Debug log
+    # Odczytanie i sparsowanie pliku JSON
+    json_content = await json_file.read()
+    json_data = json.loads(json_content)
+    print("Dane z JSON:", json_data)  # Debug log
 
-        for item in json_data:  # Iterate through each item in the JSON data
-            columns_data.append({
-                "column_name": item['column_name'],
-                "datatype": item['datatype'],
-                "datalevel": item['datalevel'],
-                "column_order": item['column_order']
-            })
-    else:
-        # If no JSON file, use the manually entered columns
-        for col_name, data_type, data_level, col_order in zip(column_names, data_types, data_levels, column_orders):
-            columns_data.append({
-                "column_name": col_name,
-                "datatype": data_type,
-                "datalevel": data_level,
-                "column_order": col_order
-            })
+    for item in json_data:  # Iterate through each item in the JSON data
+        columns_data.append({
+            "column_name": item['column_name'],
+            "datatype": item['datatype'],
+            "datalevel": item['datalevel'],
+            "column_order": item['column_order']
+        })
 
     try:
         # Register the dataset with the full file path
