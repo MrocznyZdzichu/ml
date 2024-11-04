@@ -6,6 +6,6 @@ COPY ["./requirements.txt", "/app"]
 RUN ["pip", "install", "--no-cache-dir", "-r", "/app/requirements.txt"]
 
 COPY ["./MLOps", "/app/MLOps"]
-COPY ["./WebUI/DataRegister/", "/app"]
+COPY ["./mlops-services/DataRepository/", "/app"]
 
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5000"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "4042"]

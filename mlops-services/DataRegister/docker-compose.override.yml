@@ -2,6 +2,6 @@ services:
   data-register-app:
     build:
       context: ..
-      dockerfile: 'WebUI/DataRegister/Dockerfile'
+      dockerfile: 'mlops-services/DataRegister/Dockerfile'
     ports:
       - "5000:5000"

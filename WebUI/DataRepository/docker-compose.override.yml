@@ -1,9 +1,0 @@
-services:
-  data-repository:
-    build:
-      context: ..
-      dockerfile: 'WebUI/DataRepository/Dockerfile'
-    ports:
-      - "4042:4042"
-    volumes:
-      - ..\WebUI\DataRepository\data-repository:/app/data-repository

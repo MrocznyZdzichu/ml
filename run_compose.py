@@ -11,7 +11,7 @@ args = parser.parse_args()
 compose_file = os.path.join("compose", "docker-compose.yml")
 
 override_files = []
-mainDirs = ('ModelsRepository', 'WebUI')
+mainDirs = ('ModelsRepository', 'mlops-services')
 
 for base in mainDirs:
     for root, dirs, files in os.walk(base):
