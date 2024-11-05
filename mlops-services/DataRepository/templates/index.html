@@ -6,31 +6,35 @@
     <title>Data Repository</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
+        /* Base styling */
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f4f7f8;
-            color: #333;
+            background-color: #1e1e1e; /* Dark background color */
+            color: #e0e0e0; /* Light text color for readability */
             margin: 0;
             padding: 20px;
         }
 
+        /* Headings styling */
         h1, h2 {
-            color: #4a90e2;
+            color: #82aaff; /* Light blue color for headings */
             text-align: center;
         }
 
+        /* Container styling */
         .container {
             max-width: 600px;
             margin: auto;
-            background: white;
+            background: #2e2e2e; /* Darker background for container */
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Slight shadow for depth */
             padding: 20px;
         }
 
+        /* Button styling */
         .button {
-            background-color: #4a90e2;
-            color: white;
+            background-color: #82aaff; /* Light blue for buttons */
+            color: #1e1e1e; /* Dark text color for contrast */
             border: none;
             border-radius: 5px;
             padding: 10px 15px;
@@ -39,43 +43,56 @@
             transition: background-color 0.3s ease;
         }
 
+        /* Button hover effect */
         .button:hover {
-            background-color: #357ab8;
+            background-color: #6699cc; /* Slightly darker blue on hover */
         }
 
+        /* Input and select styling */
         .file-select, .file-input {
-            width: 100%;
+            width: calc(100% - 22px); /* Adjust width for better alignment */
             padding: 10px;
             margin: 10px 0;
-            border: 1px solid #ccc;
+            border: 1px solid #555; /* Darker border for inputs */
+            background-color: #3a3a3a; /* Dark background for inputs */
+            color: #e0e0e0; /* Light text color */
             border-radius: 5px;
             font-size: 16px;
+            box-sizing: border-box; /* Include padding in width calculation */
         }
 
+        /* Message styling */
         #message {
             margin-top: 20px;
             padding: 10px;
             border-radius: 5px;
             display: none;
         }
+
+        /* Success message styling */
         .success {
-            border: 1px solid green;
-            background-color: #e6ffed;
-            color: green;
+            border: 1px solid #4caf50; /* Green border for success */
+            background-color: #2e7d32; /* Dark green background */
+            color: #a5d6a7; /* Lighter green text */
         }
+
+        /* Error message styling */
         .error {
-            border: 1px solid red;
-            background-color: #ffe6e6;
-            color: red;
+            border: 1px solid #f44336; /* Red border for errors */
+            background-color: #c62828; /* Dark red background */
+            color: #ef9a9a; /* Lighter red text */
         }
+
+        /* Close button styling */
         .close {
             cursor: pointer;
             float: right;
             font-weight: bold;
             margin-left: 10px;
+            color: #e0e0e0; /* Light color for close icon */
         }
 
-        /* Responsive adjustments */
+        /* Responsive adjustments for mobile */
         @media (max-width: 600px) {
             .container {
                 padding: 15px;
@@ -83,6 +100,10 @@
 
             .button {
                 width: 100%;
+            }
+
+            .file-select, .file-input {
+                width: 100%; /* Full width on smaller screens */
             }
         }
     </style>
@@ -96,46 +117,65 @@
         <button id="upload-button" class="button">Upload File</button>
         
         <h2>Delete File</h2>
-        <select id="file-select" name="file" class="file-select">
+        <select id="file-select-delete" class="file-select">
             <option value="">Select a file to delete</option>
         </select>
         <button id="delete-button" class="button" disabled>Delete File</button>
+
+        <h2>Download File</h2>
+        <select id="file-select-download" class="file-select">
+            <option value="">Select a file to download</option>
+        </select>
+        <button id="download-button" class="button" disabled>Download File</button>
         
         <div id="message"></div>
     </div>
 
     <script>
+        /* Fetch available files and populate the dropdowns */
         async function fetchFiles() {
             const response = await fetch('/files');
             const data = await response.json();
-            const fileSelect = document.getElementById('file-select');
+            const fileSelectDelete = document.getElementById('file-select-delete');
+            const fileSelectDownload = document.getElementById('file-select-download');
             const deleteButton = document.getElementById('delete-button');
+            const downloadButton = document.getElementById('download-button');
             const messageDiv = document.getElementById('message');
 
             // Clear existing options
-            fileSelect.innerHTML = '';
+            fileSelectDelete.innerHTML = '<option value="">Select a file to delete</option>';
+            fileSelectDownload.innerHTML = '<option value="">Select a file to download</option>';
             messageDiv.style.display = 'none';  // Hide previous message
 
             if (data.files.length > 0) {
-                // Enable the delete button
+                // Enable the delete and download buttons if files exist
                 deleteButton.disabled = false;
+                downloadButton.disabled = false;
 
-                // Populate the dropdown with files
+                // Populate the dropdowns with files
                 data.files.forEach(file => {
-                    const option = document.createElement('option');
-                    option.value = file;
-                    option.textContent = file;
-                    fileSelect.appendChild(option);
+                    const optionDelete = document.createElement('option');
+                    const optionDownload = document.createElement('option');
+                    optionDelete.value = file;
+                    optionDelete.textContent = file;
+                    optionDownload.value = file;
+                    optionDownload.textContent = file;
+                    fileSelectDelete.appendChild(optionDelete);
+                    fileSelectDownload.appendChild(optionDownload);
                 });
             } else {
-                // Disable the delete button if no files
+                // Disable buttons if no files
                 deleteButton.disabled = true;
-                fileSelect.innerHTML = '<option value="">No files available</option>';
+                downloadButton.disabled = true;
+                fileSelectDelete.innerHTML = '<option value="">No files available</option>';
+                fileSelectDownload.innerHTML = '<option value="">No files available</option>';
             }
         }
 
+        // Load available files on page load
         window.onload = fetchFiles;
 
+        /* Handle file upload */
         document.getElementById('upload-button').addEventListener('click', async () => {
             const fileInput = document.getElementById('file-input');
             const formData = new FormData();
@@ -160,8 +200,9 @@
             }
         });
 
+        /* Handle file deletion */
         document.getElementById('delete-button').addEventListener('click', async () => {
-            const fileSelect = document.getElementById('file-select');
+            const fileSelect = document.getElementById('file-select-delete');
             const selectedFile = fileSelect.value;
             const messageDiv = document.getElementById('message');
 
@@ -175,17 +216,27 @@
 
                 messageDiv.innerHTML = '';  // Clear previous messages
 
-                // Check if the response was successful
                 if (response.ok) {
-                    const result = await response.json();  // Get the response data
-                    messageDiv.innerHTML = `<span class="success">${result.message}</span><span class="close" onclick="this.parentElement.style.display='none';">X</span>`;  // Show success message
+                    const result = await response.json();
+                    messageDiv.innerHTML = `<span class="success">${result.message}</span><span class="close" onclick="this.parentElement.style.display='none';">X</span>`;
                     messageDiv.style.display = 'block';  // Show message
                     fetchFiles();  // Refresh the file list
                 } else {
-                    const errorData = await response.json();  // Get the error details
-                    messageDiv.innerHTML = `<span class="error">Error deleting file: ${errorData.detail}</span><span class="close" onclick="this.parentElement.style.display='none';">X</span>`;  // Show error message
+                    const errorData = await response.json();
+                    messageDiv.innerHTML = `<span class="error">Error deleting file: ${errorData.detail}</span><span class="close" onclick="this.parentElement.style.display='none';">X</span>`;
                     messageDiv.style.display = 'block';  // Show message
                 }
+            }
+        });
+
+        /* Handle file download */
+        document.getElementById('download-button').addEventListener('click', () => {
+            const fileSelect = document.getElementById('file-select-download');
+            const selectedFile = fileSelect.value;
+
+            if (selectedFile) {
+                // Redirect to the download endpoint
+                window.location.href = `/download/${encodeURIComponent(selectedFile)}`;
             }
         });
     </script>
