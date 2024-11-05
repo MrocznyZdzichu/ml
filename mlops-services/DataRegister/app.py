@@ -1,8 +1,8 @@
-from fastapi import FastAPI, Form, Request, UploadFile, File
+from fastapi import FastAPI, Form, Request, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from pathlib import Path
 from typing import List, Optional
+import requests
 import json
 
 from MLOps import DBManager
@@ -12,16 +12,23 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 db_manager = DBManager(dev_db=True, in_docker=True)
 
-# Change the upload directory to the desired location in the container
-UPLOAD_DIRECTORY = Path("/app/data-repository")
-UPLOAD_DIRECTORY.mkdir(exist_ok=True)  # Create the upload directory on the server if it doesn't exist
-
+# Define the data-repository service URL
+DATA_REPOSITORY_URL  = "http://data-repository:4042"
+PHYSICAL_STORAGE_DIR = "/app/data-repository'"
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     """
     Main page displaying the form for dataset registration.
     """
-    return templates.TemplateResponse("index.html", {"request": request})
+    # Fetch available files from the data repository service
+    try:
+        response = requests.get(f"{DATA_REPOSITORY_URL}/files")
+        response.raise_for_status()
+        files = response.json().get("files", [])
+    except requests.RequestException as e:
+        raise HTTPException(status_code=503, detail="Unable to fetch files from data repository")
+
+    return templates.TemplateResponse("index.html", {"request": request, "files": files})
 
 @app.post("/register_dataset")
 async def register_dataset_form(
@@ -32,36 +39,37 @@ async def register_dataset_form(
     is_structured: Optional[int] = Form(None),
     is_tabelaric: Optional[int] = Form(None),
     description: Optional[str] = Form(None),
-    file: UploadFile = File(...),
-    json_file: UploadFile = File(...),  # Zmiana: json_file jest wymagany
+    file_name: str = Form(...),  # File name selected by the user
+    json_file_name: str = Form(...)  # JSON file name selected by the user
 ):
-    print("Rejestracja datasetu została wywołana")  # Debug log
-    full_file_path = UPLOAD_DIRECTORY / file.filename  # Set full path for saving the file on the server
-    with open(full_file_path, "wb") as f:
-        f.write(await file.read())  # Save the file to the server
-
     columns_data = []
 
-    # Odczytanie i sparsowanie pliku JSON
-    json_content = await json_file.read()
-    json_data = json.loads(json_content)
-    print("Dane z JSON:", json_data)  # Debug log
+    # Fetch the main file from the data repository
+    file_url = f"{DATA_REPOSITORY_URL}/download/{file_name}"
+    response_file = requests.get(file_url)
+    if not response_file.ok:
+        raise HTTPException(status_code=404, detail="File not found in repository")
 
-    for item in json_data:  # Iterate through each item in the JSON data
-        columns_data.append({
-            "column_name": item['column_name'],
-            "datatype": item['datatype'],
-            "datalevel": item['datalevel'],
-            "column_order": item['column_order']
-        })
+    # Fetch and parse the JSON file for column details
+    json_file_url = f"{DATA_REPOSITORY_URL}/download/{json_file_name}"
+    response_json = requests.get(json_file_url)
+    if response_json.ok:
+        json_data = response_json.json()
+        for item in json_data:
+            columns_data.append({
+                "column_name": item['column_name'],
+                "datatype": item['datatype'],
+                "datalevel": item['datalevel'],
+                "column_order": item['column_order']
+            })
+    else:
+        raise HTTPException(status_code=404, detail="JSON file not found in repository")
 
     try:
-        # Register the dataset with the full file path
-        register_dataset(db_manager, name, type, str(full_file_path), has_header, is_structured, is_tabelaric, description)
-        
-        # Add column details to the database
+        # Register the dataset and add details in the database
+        register_dataset(db_manager, name, type, file_url, has_header, is_structured, is_tabelaric, description)
         add_tab_details(db_manager, name, columns_data)
-        message = f"Dataset '{name}' registered successfully with file at {full_file_path}!"
+        message = f"Dataset '{name}' registered successfully with file at {file_url}!"
     except Exception as e:
         message = f"Error: {str(e)}"
     

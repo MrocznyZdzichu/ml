@@ -55,7 +55,7 @@
             margin-bottom: 8px;
         }
 
-        input[type="text"], input[type="file"], input[type="number"], select, textarea {
+        input[type="text"], input[type="number"], select, textarea {
             width: 100%;
             padding: 8px 12px;
             margin-bottom: 15px;
@@ -66,7 +66,7 @@
             box-sizing: border-box;
         }
 
-        input[type="text"]:focus, input[type="file"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+        input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
             border-color: #4a90e2;
             outline: none;
         }
@@ -114,7 +114,7 @@
 
     <h2>Register New Dataset</h2>
     
-    <form method="post" action="/register_dataset" enctype="multipart/form-data">
+    <form method="post" action="/register_dataset" onsubmit="return validateForm()">
         <label for="name">Name:</label>
         <input type="text" id="name" name="name" required>
         
@@ -123,8 +123,13 @@
             <option value="csv">CSV</option>
         </select>
         
-        <label for="file">Location (Choose a file):</label>
-        <input type="file" id="file" name="file" required>
+        <label for="file_name">Location (Choose a file):</label>
+        <select id="file_name" name="file_name" required>
+            <option value="">Select a file</option>
+            {% for file in files %}
+                <option value="{{ file }}">{{ file }}</option>
+            {% endfor %}
+        </select>
         
         <label for="has_header">Headers in Source:</label>
         <select id="has_header" name="has_header" required>
@@ -149,91 +154,32 @@
         <label for="description">Description:</label>
         <textarea id="description" name="description" rows="4"></textarea>
     
-        <label for="json_file">Column Metadata JSON (required):</label>
-        <input type="file" id="json_file" name="json_file" accept=".json" required>
+        <label for="json_file_name">Column Metadata JSON (required):</label>
+        <select id="json_file_name" name="json_file_name" required>
+            <option value="">Select a JSON file</option>
+            {% for file in files %}
+                <option value="{{ file }}">{{ file }}</option>
+            {% endfor %}
+        </select>
     
         <input type="submit" value="Register Dataset">
     </form>
 
     <script>
-        let columnOrder = 1;
-
-        function addColumn() {
-            const container = document.getElementById("columns-container");
-            const entry = document.createElement("div");
-            entry.className = "column-entry";
-            entry.innerHTML = `
-                <label>Column Name:</label>
-                <input type="text" name="column_names" required>
-                
-                <label>Data Type:</label>
-                <select name="data_types" required>
-                    <option value="string">String</option>
-                    <option value="float">Float</option>
-                    <option value="int">Int</option>
-                </select>
-
-                <label>Data Level:</label>
-                <select name="data_levels">
-                    <option value="">None</option>
-                    <option value="category">Category</option>
-                    <option value="ranking">Ranking</option>
-                    <option value="value">Value</option>
-                </select>
-
-                <label>Column Order:</label>
-                <input type="number" name="column_orders" value="${columnOrder++}" required>
-            `;
-            container.appendChild(entry);
-        }
-
-        function toggleManualInput() {
-            const jsonFileInput = document.getElementById("json_file");
-            const columnMetadata = document.getElementById("column-metadata");
-            const columnEntries = document.querySelectorAll('.column-entry');
-            
-            if (jsonFileInput.files.length > 0) {
-                columnMetadata.classList.add("hidden");
-                columnEntries.forEach(entry => {
-                    entry.querySelectorAll('input, select').forEach(input => {
-                        input.required = false;
-                    });
-                    entry.classList.add("hidden");
-                });
-            } else {
-                columnMetadata.classList.remove("hidden");
-                columnEntries.forEach(entry => {
-                    entry.querySelectorAll('input, select').forEach(input => {
-                        input.required = true;
-                    });
-                    entry.classList.remove("hidden");
-                });
-            }
-        }
-
         function validateForm() {
-            const jsonFileInput = document.getElementById("json_file");
-            const columnEntries = document.querySelectorAll('.column-entry');
+            const fileSelect = document.getElementById("file_name");
+            const jsonFileSelect = document.getElementById("json_file_name");
 
-            if (jsonFileInput.files.length > 0) {
-                return true;
-            } else {
-                let allEntriesValid = true;
-                columnEntries.forEach(entry => {
-                    const columnName = entry.querySelector('input[name="column_names"]').value;
-                    const dataType = entry.querySelector('select[name="data_types"]').value;
-                    const columnOrder = entry.querySelector('input[name="column_orders"]').value;
-
-                    if (!columnName || !dataType || !columnOrder) {
-                        allEntriesValid = false;
-                    }
-                });
-
-                if (!allEntriesValid) {
-                    alert('Please fill all required fields for manual column input.');
-                    return false;
-                }
+            if (!fileSelect.value) {
+                alert("Please select a main data file.");
+                return false;
             }
+
+            if (!jsonFileSelect.value) {
+                alert("Please select a JSON file for column metadata.");
+                return false;
+            }
+
             return true;
         }
     </script>
