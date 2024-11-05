@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Dataset</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: rgb(20, 30, 40); /* Custom dark background */
+            color: #f0f0f0; /* Light text color for contrast */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        h2 {
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .message {
+            text-align: center;
+            font-weight: bold;
+            color: #ffffff;
+            background-color: #4CAF50; /* Green background for messages */
+            border: 1px solid #388E3C;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+        }
+
+        form {
+            background-color: #333333; /* Dark background for form */
+            border: 1px solid #444444;
+            border-radius: 8px;
+            padding: 20px 30px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+        }
+
+        label {
+            font-weight: bold;
+            color: #cccccc;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%;
+            padding: 8px 12px;
+            margin-bottom: 15px;
+            border: 1px solid #666666;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #f0f0f0;
+            background-color: #444444; /* Dark background for inputs */
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        button, input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            font-size: 14px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        button:hover, input[type="submit"]:hover {
+            background-color: #388E3C;
+        }
+
+        .column-entry {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #666666;
+            border-radius: 4px;
+            background-color: #555555; /* Darker background for columns */
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .column-metadata {
+            color: #f0f0f0;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    {% if message %}
+        <div class="message">{{ message }}</div>
+    {% endif %}
+
+    <h2>Register New Dataset</h2>
+    
+    <form method="post" action="/register_dataset" onsubmit="return validateForm()">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        
+        <label for="type">Type:</label>
+        <select id="type" name="type" required>
+            <option value="csv">CSV</option>
+        </select>
+        
+        <label for="file_name">Location (Choose a file):</label>
+        <select id="file_name" name="file_name" required>
+            <option value="">Select a file</option>
+            {% for file in files %}
+                <option value="{{ file }}">{{ file }}</option>
+            {% endfor %}
+        </select>
+        
+        <label for="has_header">Headers in Source:</label>
+        <select id="has_header" name="has_header" required>
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+        </select>
+        
+        <label for="is_structured">Is Structured:</label>
+        <select id="is_structured" name="is_structured">
+            <option value="">Not specified</option>
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+        </select>
+        
+        <label for="is_tabelaric">Is Tabelaric:</label>
+        <select id="is_tabelaric" name="is_tabelaric">
+            <option value="">Not specified</option>
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+        </select>
+        
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" rows="4"></textarea>
+    
+        <label for="json_file_name">Column Metadata JSON (required):</label>
+        <select id="json_file_name" name="json_file_name" required>
+            <option value="">Select a JSON file</option>
+            {% for file in files %}
+                <option value="{{ file }}">{{ file }}</option>
+            {% endfor %}
+        </select>
+    
+        <input type="submit" value="Register Dataset">
+    </form>
+
+    <script>
+        function validateForm() {
+            const fileSelect = document.getElementById("file_name");
+            const jsonFileSelect = document.getElementById("json_file_name");
+
+            if (!fileSelect.value) {
+                alert("Please select a main data file.");
+                return false;
+            }
+
+            if (!jsonFileSelect.value) {
+                alert("Please select a JSON file for column metadata.");
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+</body>
+</html>
