@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Model</title>
+    <style>
+        body {
+            background-color: rgb(20, 30, 40);
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            width: 40%;
+            text-align: left;
+            background-color: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            background-color: #444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            background-color: #3498db;
+            padding: 10px;
+            font-size: 16px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Create a Basic Model</h1>
+        <form action="/create_model" method="post">
+            <label for="model_name">Model Name:</label>
+            <input type="text" id="model_name" name="model_name" required>
+
+            <label for="dataset_name">Dataset Name:</label>
+            <input type="text" id="dataset_name" name="dataset_name" required>
+
+            <label for="model_class">Model Class (e.g., LinearRegression):</label>
+            <input type="text" id="model_class" name="model_class" required>
+
+            <label for="model_params">Model Parameters (e.g., {'fit_intercept': True}):</label>
+            <textarea id="model_params" name="model_params" rows="4" required></textarea>
+
+            <label for="datarole_mapping">Data Role Mapping (e.g., {'feature1': 'input', 'target': 'target'}):</label>
+            <textarea id="datarole_mapping" name="datarole_mapping" rows="4" required></textarea>
+
+            <button type="submit">Create Model</button>
+        </form>
+    </div>
+</body>
+</html>
