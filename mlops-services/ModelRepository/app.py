@@ -12,10 +12,12 @@ _model_store_dir = "/app/model-repository"
 async def index(request: Request):
     if not os.path.exists(_model_store_dir):
         os.makedirs(_model_store_dir)
-    model_names = [name for name in os.listdir(_model_store_dir) if os.path.isdir(os.path.join(_model_store_dir, name))]
+    model_names = [
+        name for name in os.listdir(_model_store_dir)
+        if os.path.isdir(os.path.join(_model_store_dir, name)) and name != ".ipynb_checkpoints"
+    ]
     
     return templates.TemplateResponse("index.html", {"request": request, "model_names": model_names})
-
 
 @app.post("/delete-model/{model_name}")
 async def delete_model(model_name: str):

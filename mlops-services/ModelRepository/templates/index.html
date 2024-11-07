@@ -9,21 +9,28 @@
             background-color: rgb(20, 30, 40);
             color: white;
             font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             margin: 0;
-            padding: 20px;
+        }
+        .container {
+            text-align: center;
+            width: 50%;
         }
         h1 {
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #555;
             text-align: center;
-        }
-        form {
-            display: inline;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        li {
-            margin: 10px 0;
         }
         button {
             background-color: #e74c3c;
@@ -36,19 +43,43 @@
         button:hover {
             background-color: #c0392b;
         }
+        .create-button {
+            margin-top: 20px;
+            background-color: #3498db;
+            padding: 10px 15px;
+            font-size: 16px;
+        }
+        .create-button:hover {
+            background-color: #2980b9;
+        }
     </style>
 </head>
 <body>
-    <h1>Model Repository</h1>
-    <ul>
-        {% for model in model_names %}
-            <li>
-                {{ model }}
-                <form action="/delete-model/{{ model }}" method="post" style="display: inline;">
-                    <button type="submit">Delete</button>
-                </form>
-            </li>
-        {% endfor %}
-    </ul>
+    <div class="container">
+        <h1>Model Repository</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Model Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for model in model_names %}
+                    <tr>
+                        <td>{{ model }}</td>
+                        <td>
+                            <form action="/delete-model/{{ model }}" method="post" style="display: inline;">
+                                <button type="submit">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="http://localhost:5001">
+            <button class="create-button">Create a basic model</button>
+        </a>
+    </div>
 </body>
 </html>
