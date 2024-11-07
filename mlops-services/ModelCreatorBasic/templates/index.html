@@ -95,7 +95,21 @@
                 </select><br><br>
 
                 <label for="model_class">Model Class:</label>
-                <input type="text" id="model_class" name="model_class" required><br><br>
+                <select id="model_class" name="model_class" required>
+                    <option value="">Select Model Type</option>
+                    
+                    <!-- Classifiers Section -->
+                    <option disabled>-- Classifiers --</option>
+                    {% for model_name, model_class in models.classifiers.items() %}
+                        <option value="classifiers.{{ model_name }}">{{ model_name }}</option>
+                    {% endfor %}
+                    
+                    <!-- Regressors Section -->
+                    <option disabled>-- Regressors --</option>
+                    {% for model_name, model_class in models.regressors.items() %}
+                        <option value="regressors.{{ model_name }}">{{ model_name }}</option>
+                    {% endfor %}
+                </select><br><br>
 
                 <label for="model_params">Model Parameters (JSON format):</label>
                 <input type="text" id="model_params" name="model_params"><br><br>
