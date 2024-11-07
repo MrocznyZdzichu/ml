@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import requests
 
@@ -22,21 +23,19 @@ def load_tabular_dataset(dbm, dataset_name, in_docker=False):
     dataset_location = dataset_info[0].split('/')[-1]  # This will contain the filename
     headers_in_source = dataset_info[1]
 
-    # URL of the file server
-    hostname = 'localhost' if in_docker==False else 'mlops-data-repository-1'
+    hostname = 'localhost' if in_docker==False else 'mlops-data-repository-1'    
     file_server_url = f"http://{hostname}:4042/download/{dataset_location}"
 
-    # Download the file from the file server
-    response = requests.get(file_server_url)
-    if response.status_code == 200:
-        # Save the file locally
-        local_file_path = f"./{dataset_location}"  # Adjust the path as necessary
-        with open(local_file_path, 'wb') as f:
-            f.write(response.content)
+    pandas_dtypes, column_names = _prepare_columns_info(dbm, dataset_name)
+    
+    if headers_in_source == 1:
+        df = pd.read_csv(file_server_url, dtype=pandas_dtypes, header=0) 
     else:
-        raise Exception(f"Failed to download file: {response.status_code} - {response.text}")
+        df = pd.read_csv(file_server_url, names=column_names, dtype=pandas_dtypes)
 
-    # Fetch column metadata
+    return df
+
+def _prepare_columns_info(dbm, dataset_name):
     columns_query = """
     SELECT COLUMN_NAME, DATATYPE 
     FROM MLAPP.DATASET_DETAILS_TAB 
@@ -51,10 +50,4 @@ def load_tabular_dataset(dbm, dataset_name, in_docker=False):
     dtype_mapping = {'float': 'float64', 'string': 'object', 'int': 'float64'}
     pandas_dtypes = {col: dtype_mapping[dtypes[col]] for col in dtypes}
 
-    # Load the dataset into a DataFrame
-    if headers_in_source == 1:
-        df = pd.read_csv(local_file_path, dtype=pandas_dtypes, header=0) 
-    else:
-        df = pd.read_csv(local_file_path, names=column_names, dtype=pandas_dtypes)
-
-    return df
+    return pandas_dtypes, column_names
