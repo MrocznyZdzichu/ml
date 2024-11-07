@@ -4,15 +4,19 @@ from fastapi.templating import Jinja2Templates
 import os
 from MLOps.ModelManager import ModelCreatorBasic
 from MLOps.DBManager import DBManager 
+from MLOps.DataGoverner import get_datasets_list
 
 app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
 model_repository_dir = "/app/model-repository"
 
+dbm = DBManager(dev_db=True, in_docker=True)
+
 @app.get("/", response_class=HTMLResponse)
 async def create_model_form(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    datasets = get_datasets_list(dbm)
+    return templates.TemplateResponse("index.html", {"request": request, "datasets": datasets})
 
 @app.post("/create_model")
 async def create_model(
@@ -25,8 +29,6 @@ async def create_model(
 ):
     model_params = eval(model_params)
     datarole_mapping = eval(datarole_mapping)
-
-    dbm = DBManager(dev_db=True, in_docker=True)
 
     ModelClass = eval(model_class)
 

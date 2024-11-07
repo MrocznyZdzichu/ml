@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Model</title>
+    <title>Create a Basic Model</title>
     <style>
         body {
             background-color: rgb(20, 30, 40);
@@ -15,63 +15,96 @@
             height: 100vh;
             margin: 0;
         }
+
         .container {
-            width: 40%;
-            text-align: left;
-            background-color: #2a2a2a;
+            width: 25%;
+            background-color: #2d2d2d;
             padding: 20px;
             border-radius: 8px;
+            box-sizing: border-box;
         }
-        label {
-            font-weight: bold;
-            display: block;
-            margin-top: 10px;
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
         }
-        input[type="text"], textarea {
+
+        table {
             width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            margin-bottom: 15px;
-            background-color: #444;
-            color: white;
-            border: none;
-            border-radius: 4px;
+            margin: 20px 0;
+            border-collapse: collapse;
         }
-        button {
-            width: 100%;
-            background-color: #3498db;
+
+        table, th, td {
+            border: 1px solid #444;
+        }
+
+        th, td {
             padding: 10px;
-            font-size: 16px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #444;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #333;
+            color: white;
+            border: 1px solid #444;
+            border-radius: 4px;
+            box-sizing: border-box;  /* Prevent overflow */
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background-color: #1e90ff;
             color: white;
             border: none;
             border-radius: 4px;
+            font-size: 16px;
             cursor: pointer;
         }
-        button:hover {
-            background-color: #2980b9;
+
+        input[type="submit"]:hover {
+            background-color: #0073e6;
+        }
+
+        .form-container {
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Create a Basic Model</h1>
+        <h1>Create a New Model</h1>
         <form action="/create_model" method="post">
-            <label for="model_name">Model Name:</label>
-            <input type="text" id="model_name" name="model_name" required>
+            <div class="form-container">
+                <label for="model_name">Model Name:</label>
+                <input type="text" id="model_name" name="model_name" required><br><br>
 
-            <label for="dataset_name">Dataset Name:</label>
-            <input type="text" id="dataset_name" name="dataset_name" required>
+                <label for="dataset_name">Dataset Name:</label>
+                <select id="dataset_name" name="dataset_name" required>
+                    {% for dataset in datasets %}
+                        <option value="{{ dataset }}">{{ dataset }}</option>
+                    {% endfor %}
+                </select><br><br>
 
-            <label for="model_class">Model Class (e.g., LinearRegression):</label>
-            <input type="text" id="model_class" name="model_class" required>
+                <label for="model_class">Model Class:</label>
+                <input type="text" id="model_class" name="model_class" required><br><br>
 
-            <label for="model_params">Model Parameters (e.g., {'fit_intercept': True}):</label>
-            <textarea id="model_params" name="model_params" rows="4" required></textarea>
+                <label for="model_params">Model Parameters (JSON format):</label>
+                <input type="text" id="model_params" name="model_params"><br><br>
 
-            <label for="datarole_mapping">Data Role Mapping (e.g., {'feature1': 'input', 'target': 'target'}):</label>
-            <textarea id="datarole_mapping" name="datarole_mapping" rows="4" required></textarea>
+                <label for="datarole_mapping">Data Role Mapping (JSON format):</label>
+                <input type="text" id="datarole_mapping" name="datarole_mapping"><br><br>
 
-            <button type="submit">Create Model</button>
+                <input type="submit" value="Create Model">
+            </div>
         </form>
     </div>
 </body>
