@@ -3,7 +3,7 @@ import json
 import joblib
 
 from MLOps.CodeGeneration import BatchScoreCodeGenerator, OnlineScoreCodeGenerator, DockerScoreCodeGenerator
-_model_store_dir = 'ModelsRepository'
+_model_store_dir = 'model-repository'
 
 
 class Model:

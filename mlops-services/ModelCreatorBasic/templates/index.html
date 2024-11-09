@@ -14,14 +14,18 @@
             align-items: center;
             height: 100vh;
             margin: 0;
+            overflow: hidden; /* Prevents body from scrolling */
         }
 
         .container {
-            width: 25%;
+            width: 30%;
+            max-width: 600px;
             background-color: #2d2d2d;
             padding: 20px;
             border-radius: 8px;
             box-sizing: border-box;
+            overflow-y: auto; /* Allows vertical scroll for the form container */
+            max-height: 90vh; /* Limits the container height */
         }
 
         h1 {
@@ -29,6 +33,37 @@
             margin-bottom: 20px;
         }
 
+        .form-container {
+            margin-top: 20px;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #333;
+            color: white;
+            border: 1px solid #444;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background-color: #1e90ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0073e6;
+        }
+
+        /* Styles for the table */
         table {
             width: 100%;
             margin: 20px 0;
@@ -48,34 +83,11 @@
             background-color: #444;
         }
 
-        input[type="text"], select {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            background-color: #333;
-            color: white;
-            border: 1px solid #444;
-            border-radius: 4px;
-            box-sizing: border-box;  /* Prevent overflow */
-        }
-
-        input[type="submit"] {
-            width: 100%;
-            padding: 12px;
-            background-color: #1e90ff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        input[type="submit"]:hover {
-            background-color: #0073e6;
-        }
-
-        .form-container {
-            margin-top: 20px;
+        /* Scrollable table container */
+        .table-container {
+            max-height: 200px; /* Adjust this height as needed */
+            overflow-y: auto;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -88,7 +100,7 @@
                 <input type="text" id="model_name" name="model_name" required><br><br>
 
                 <label for="dataset_name">Dataset Name:</label>
-                <select id="dataset_name" name="dataset_name" required>
+                <select id="dataset_name" name="dataset_name" required onchange="fetchDatasetColumns()">
                     {% for dataset in datasets %}
                         <option value="{{ dataset }}">{{ dataset }}</option>
                     {% endfor %}
@@ -97,14 +109,10 @@
                 <label for="model_class">Model Class:</label>
                 <select id="model_class" name="model_class" required>
                     <option value="">Select Model Type</option>
-                    
-                    <!-- Classifiers Section -->
                     <option disabled>-- Classifiers --</option>
                     {% for model_name, model_class in models.classifiers.items() %}
                         <option value="classifiers.{{ model_name }}">{{ model_name }}</option>
                     {% endfor %}
-                    
-                    <!-- Regressors Section -->
                     <option disabled>-- Regressors --</option>
                     {% for model_name, model_class in models.regressors.items() %}
                         <option value="regressors.{{ model_name }}">{{ model_name }}</option>
@@ -114,12 +122,77 @@
                 <label for="model_params">Model Parameters (JSON format):</label>
                 <input type="text" id="model_params" name="model_params"><br><br>
 
-                <label for="datarole_mapping">Data Role Mapping (JSON format):</label>
-                <input type="text" id="datarole_mapping" name="datarole_mapping"><br><br>
+                <label for="datarole_mapping">Data Role Mapping:</label>
+                <div class="table-container">
+                    <table id="dataRoleTable">
+                        <thead>
+                            <tr>
+                                <th>Column Name</th>
+                                <th>Data Type</th>
+                                <th>Data Level</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Rows will be populated dynamically by JavaScript -->
+                        </tbody>
+                    </table>
+                </div><br>
 
                 <input type="submit" value="Create Model">
             </div>
         </form>
     </div>
+
+    <script>
+        async function fetchDatasetColumns() {
+            const datasetName = document.getElementById("dataset_name").value;
+            try {
+                const response = await fetch(`/get_dataset_columns?dataset_name=${datasetName}&details=true`);
+                const columns = await response.json();
+        
+                const tableBody = document.getElementById("dataRoleTable").querySelector("tbody");
+                tableBody.innerHTML = ""; // Clear previous rows
+        
+                columns.forEach(column => {
+                    const row = document.createElement("tr");
+        
+                    // Column Name
+                    const nameCell = document.createElement("td");
+                    nameCell.textContent = column.name || "N/A";
+                    row.appendChild(nameCell);
+        
+                    // Data Type
+                    const typeCell = document.createElement("td");
+                    typeCell.textContent = column.datatype || "N/A";
+                    row.appendChild(typeCell);
+        
+                    // Data Level
+                    const levelCell = document.createElement("td");
+                    levelCell.textContent = column.datalevel || "N/A";
+                    row.appendChild(levelCell);
+        
+                    // Role Selection
+                    const roleCell = document.createElement("td");
+                    const roleSelect = document.createElement("select");
+                    roleSelect.name = `datarole_mapping[${column.name}]`;
+        
+                    ["input", "target", "ignore"].forEach(role => {
+                        const option = document.createElement("option");
+                        option.value = role;
+                        option.textContent = role.charAt(0).toUpperCase() + role.slice(1);
+                        roleSelect.appendChild(option);
+                    });
+        
+                    roleCell.appendChild(roleSelect);
+                    row.appendChild(roleCell);
+        
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error("Error fetching dataset columns:", error);
+            }
+        }
+    </script>
 </body>
 </html>

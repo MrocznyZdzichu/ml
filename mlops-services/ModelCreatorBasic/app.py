@@ -14,14 +14,14 @@ from sklearn.isotonic import IsotonicRegression
 from fastapi import FastAPI, Request, Form, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from typing import List, Dict, Any
 
 import os
-import inspect
 import json
 
 from MLOps.ModelManager import ModelCreatorBasic
 from MLOps.DBManager import DBManager 
-from MLOps.DataGoverner import get_datasets_list
+from MLOps.DataGoverner import get_datasets_list, get_datasets_columns
 
 available_models = {
     "classifiers": {
@@ -45,7 +45,7 @@ available_models = {
         "LinearDiscriminantAnalysis": LinearDiscriminantAnalysis,
         "QuadraticDiscriminantAnalysis": QuadraticDiscriminantAnalysis,
         "MLPClassifier": MLPClassifier,
-        "KMeans": KMeans,  # KMeans is a clustering model but often used for classification tasks too
+        "KMeans": KMeans,
         "SpectralClustering": SpectralClustering,
     },
     "regressors": {
@@ -60,8 +60,8 @@ available_models = {
         "LinearSVC": LinearSVC,
         "MLPRegressor": MLPRegressor,
         "IsotonicRegression": IsotonicRegression,
-        "SGDRegressor": SGDClassifier,  # SGDRegressor is similar to SGDClassifier
-        "EllipticEnvelope": EllipticEnvelope,  # Robust regression model
+        "SGDRegressor": SGDClassifier,
+        "EllipticEnvelope": EllipticEnvelope,
     }
 }
 
@@ -77,6 +77,12 @@ async def create_model_form(request: Request):
     datasets = get_datasets_list(dbm)
     return templates.TemplateResponse("index.html", {"request": request, "datasets": datasets, "models": available_models})
 
+@app.get("/get_dataset_columns")
+async def get_dataset_columns(dataset_name: str):
+    """Endpoint zwracający kolumny zestawu danych z dodatkowymi informacjami."""
+    columns = get_datasets_columns(dbm, dataset_name, details=True)
+    return [{"name": col[0], "datatype": col[1], "datalevel": col[2]} for col in columns]
+
 @app.post("/create_model")
 async def create_model(
     request: Request,
@@ -86,21 +92,25 @@ async def create_model(
     model_params: str = Form(...),
     datarole_mapping: str = Form(...)
 ):
-    model_params = eval(model_params)
-    datarole_mapping = eval(datarole_mapping)
-
+    
+    model_params = json.loads(model_params)  
+    
+    datarole_mapping_dict = {
+        column: role for column, role in json.loads(datarole_mapping).items() if role != "ignore"
+    }
+ 
     model_type, model_class_name = model_class.split(".", 1)
     if model_type not in available_models or model_class_name not in available_models[model_type]:
         return {"error": "Invalid model class selected"}
-
+ 
     model_class_instance = available_models[model_type][model_class_name](**model_params)
-
+    
     model_creator = ModelCreatorBasic(
         model_name=model_name,
         dataset_name=dataset_name,
-        model_class=ModelClass,
+        model_class=model_class_instance,
         model_params=model_params,
-        datarole_mapping=datarole_mapping
+        datarole_mapping=datarole_mapping_dict
     )
     
     model = model_creator.create_model(dbm)
