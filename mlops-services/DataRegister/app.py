@@ -13,7 +13,7 @@ templates = Jinja2Templates(directory="templates")
 db_manager = DBManager(dev_db=True, in_docker=True)
 
 # Define the data-repository service URL
-DATA_REPOSITORY_URL  = "http://data-repository:4042"
+DATA_REPOSITORY_URL  = "http://mlops-data-repository-1:4042"
 PHYSICAL_STORAGE_DIR = "/app/data-repository'"
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):

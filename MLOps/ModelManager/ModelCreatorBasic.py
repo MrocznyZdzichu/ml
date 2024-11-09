@@ -21,8 +21,8 @@ class ModelCreatorBasic(ModelCreatorAbst):
     def __is_target_definiton_missing(self, datarole_mapping):
         return len([col_name for col_name in datarole_mapping if datarole_mapping[col_name].lower() == 'target']) != 1
         
-    def create_model(self, dbm):
-        df = load_tabular_dataset(dbm, self.__dataset_name)
+    def create_model(self, dbm, in_docker=False):
+        df = load_tabular_dataset(dbm, self.__dataset_name, in_docker=in_docker)
     
         if self.__is_target_definiton_missing(self.__datarole_mapping):
             raise ValueError("Target column not found. Please specify exactly one target_column.")

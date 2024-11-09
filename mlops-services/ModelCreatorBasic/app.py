@@ -11,10 +11,11 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticD
 from sklearn.cluster import KMeans, SpectralClustering
 from sklearn.isotonic import IsotonicRegression
 
-from fastapi import FastAPI, Request, Form, Depends
+from fastapi import FastAPI, Request, Form, Depends, Body
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from typing import List, Dict, Any
+from pydantic import BaseModel
 
 import os
 import json
@@ -79,41 +80,43 @@ async def create_model_form(request: Request):
 
 @app.get("/get_dataset_columns")
 async def get_dataset_columns(dataset_name: str):
-    """Endpoint zwracający kolumny zestawu danych z dodatkowymi informacjami."""
     columns = get_datasets_columns(dbm, dataset_name, details=True)
     return [{"name": col[0], "datatype": col[1], "datalevel": col[2]} for col in columns]
 
+class ModelCreateRequest(BaseModel):
+    model_name: str
+    dataset_name: str
+    model_class: str
+    model_params: str
+    datarole_mapping: dict[str, str]
+    
 @app.post("/create_model")
-async def create_model(
-    request: Request,
-    model_name: str = Form(...),
-    dataset_name: str = Form(...),
-    model_class: str = Form(...),
-    model_params: str = Form(...),
-    datarole_mapping: str = Form(...)
-):
-    
-    model_params = json.loads(model_params)  
-    
+async def create_model(request: Request, model: ModelCreateRequest = Body(...)):
+    print(f"Received model: {model}")  # Debugging output to check the received data
+
+    model_params = json.loads(model.model_params) if model.model_params.strip() else {}
+    print(model_params)
     datarole_mapping_dict = {
-        column: role for column, role in json.loads(datarole_mapping).items() if role != "ignore"
+        column: role for column, role in model.datarole_mapping.items() if role != "ignore"
     }
- 
-    model_type, model_class_name = model_class.split(".", 1)
+
+    # Correct the reference to model_class, using model.model_class instead
+    model_type, model_class_name = model.model_class.split(".", 1)  # Use model.model_class
+
     if model_type not in available_models or model_class_name not in available_models[model_type]:
         return {"error": "Invalid model class selected"}
- 
-    model_class_instance = available_models[model_type][model_class_name](**model_params)
+
+    model_class_instance = available_models[model_type][model_class_name]
     
     model_creator = ModelCreatorBasic(
-        model_name=model_name,
-        dataset_name=dataset_name,
+        model_name=model.model_name,
+        dataset_name=model.dataset_name,
         model_class=model_class_instance,
         model_params=model_params,
         datarole_mapping=datarole_mapping_dict
     )
     
-    model = model_creator.create_model(dbm)
-    model.save_model()
+    model_instance = model_creator.create_model(dbm, in_docker=True)
+    model_instance.save_model()
 
     return RedirectResponse(url="/", status_code=303)
