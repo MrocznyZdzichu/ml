@@ -1,0 +1,9 @@
+services:
+  metadata-server:
+    build:
+      context: ..
+      dockerfile: 'mlops-services/MetadataServer/Dockerfile'
+    ports:
+      - "4044:4044"
+    volumes:
+      - ..\model-repository:/app/model-repository
