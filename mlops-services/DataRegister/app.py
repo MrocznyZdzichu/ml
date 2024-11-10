@@ -12,6 +12,7 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 db_manager = DBManager(dev_db=True, in_docker=True)
 
+METADATA_SERVICE_URL = "http://mlops-metadata-server-1:4044"
 DATA_REPOSITORY_URL  = "http://mlops-data-repository-1:4042"
 PHYSICAL_STORAGE_DIR = "/app/data-repository'"
 
@@ -42,32 +43,22 @@ async def register_dataset_form(
     file_name: str = Form(...), 
     json_file_name: str = Form(...) 
 ):
-    columns_data = []
-
-    file_url = f"{DATA_REPOSITORY_URL}/download/{file_name}"
-    response_file = requests.get(file_url)
-    if not response_file.ok:
-        raise HTTPException(status_code=404, detail="File not found in repository")
-
-    json_file_url = f"{DATA_REPOSITORY_URL}/download/{json_file_name}"
-    response_json = requests.get(json_file_url)
-    if response_json.ok:
-        json_data = response_json.json()
-        for item in json_data:
-            columns_data.append({
-                "column_name": item['column_name'],
-                "datatype": item['datatype'],
-                "datalevel": item['datalevel'],
-                "column_order": item['column_order']
-            })
-    else:
-        raise HTTPException(status_code=404, detail="JSON file not found in repository")
+    data = {
+        "name": name,
+        "type": type,
+        "has_header": has_header,
+        "is_structured": is_structured,
+        "is_tabelaric": is_tabelaric,
+        "description": description,
+        "file_name": file_name,
+        "json_file_name": json_file_name
+    }
 
     try:
-        register_dataset(db_manager, name, type, file_url, has_header, is_structured, is_tabelaric, description)
-        add_tab_details(db_manager, name, columns_data)
-        message = f"Dataset '{name}' registered successfully with file at {file_url}!"
-    except Exception as e:
+        response = requests.post(f"{METADATA_SERVICE_URL}/datasets/register", data=data)
+        response.raise_for_status()
+        message = f"Dataset '{name}' registered successfully!"
+    except requests.RequestException as e:
         message = f"Error: {str(e)}"
     
     return templates.TemplateResponse("index.html", {"request": request, "message": message})
