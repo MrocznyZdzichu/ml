@@ -88,7 +88,9 @@ class ModelCreateRequest(BaseModel):
     dataset_name: str
     model_class: str
     model_params: str
-    datarole_mapping: dict[str, str]
+    datarole_mapping: Dict[str, str]
+    test_size: float = 0.2
+    random_state: int = 42
     
 @app.post("/create_model")
 async def create_model(request: Request, model: ModelCreateRequest = Body(...)):
@@ -113,10 +115,12 @@ async def create_model(request: Request, model: ModelCreateRequest = Body(...)):
         dataset_name=model.dataset_name,
         model_class=model_class_instance,
         model_params=model_params,
-        datarole_mapping=datarole_mapping_dict
+        datarole_mapping=datarole_mapping_dict,
+        test_size=model.test_size,
+        random_state=model.random_state
     )
     
     model_instance = model_creator.create_model(dbm, in_docker=True)
     model_instance.save_model()
 
-    return RedirectResponse(url="/", status_code=303)
+    return RedirectResponse(url="/?message=Model created successfully!", status_code=303)
