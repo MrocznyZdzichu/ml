@@ -8,16 +8,15 @@ import shutil
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-# Define the directory where files will be stored
 DATA_DIRECTORY = Path("data-repository")
-DATA_DIRECTORY.mkdir(exist_ok=True)  # Create the data directory if it doesn't exist
+DATA_DIRECTORY.mkdir(exist_ok=True)  
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     """
     Main page displaying the form for dataset registration.
     """
-    return templates.TemplateResponse("index.html", {"request": request})  # Make sure to include the request here
+    return templates.TemplateResponse("index.html", {"request": request})  
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
@@ -34,7 +33,7 @@ async def list_files():
     """
     List files in the data repository directory.
     """
-    directory = Path("data-repository")  # Upewnij się, że podajesz poprawną ścieżkę do katalogu
+    directory = Path("data-repository")  
     files = [f.name for f in directory.iterdir() if f.is_file()]
     return {"files": files}
     
@@ -45,7 +44,7 @@ async def delete_file(file_name: str):
     """
     file_path = Path("data-repository") / file_name
     if file_path.is_file():
-        file_path.unlink()  # Remove the file
+        file_path.unlink()  
         return {"message": f"File '{file_name}' deleted."}
     else:
         return {"error": "File not found."}, 404

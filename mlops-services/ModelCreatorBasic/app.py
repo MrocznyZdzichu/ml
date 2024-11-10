@@ -19,10 +19,10 @@ from pydantic import BaseModel
 
 import os
 import json
+import requests
 
 from MLOps.ModelManager import ModelCreatorBasic
 from MLOps.DBManager import DBManager 
-from MLOps.DataGoverner import get_datasets_list, get_datasets_columns
 
 available_models = {
     "classifiers": {
@@ -73,14 +73,26 @@ model_repository_dir = "/app/model-repository"
 
 dbm = DBManager(dev_db=True, in_docker=True)
 
+def get_datasets_list_from_metadata_service():
+    response = requests.get("http://mlops-metadata-server-1:4044/datasets")
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Error fetching datasets list")
+    return response.json()
+
+def get_dataset_columns_from_metadata_service(dataset_name: str, details: bool = False):
+    response = requests.get(f"http://mlops-metadata-server-1:4044/datasets/{dataset_name}/columns", params={"details": details})
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Error fetching dataset columns")
+    return response.json()
+
 @app.get("/", response_class=HTMLResponse)
 async def create_model_form(request: Request):
-    datasets = get_datasets_list(dbm)
+    datasets = get_datasets_list_from_metadata_service()
     return templates.TemplateResponse("index.html", {"request": request, "datasets": datasets, "models": available_models})
 
 @app.get("/get_dataset_columns")
 async def get_dataset_columns(dataset_name: str):
-    columns = get_datasets_columns(dbm, dataset_name, details=True)
+    columns = get_dataset_columns_from_metadata_service(dataset_name, details=True)
     return [{"name": col[0], "datatype": col[1], "datalevel": col[2]} for col in columns]
 
 class ModelCreateRequest(BaseModel):
@@ -94,16 +106,12 @@ class ModelCreateRequest(BaseModel):
     
 @app.post("/create_model")
 async def create_model(request: Request, model: ModelCreateRequest = Body(...)):
-    print(f"Received model: {model}")  # Debugging output to check the received data
-
     model_params = json.loads(model.model_params) if model.model_params.strip() else {}
-    print(model_params)
     datarole_mapping_dict = {
         column: role for column, role in model.datarole_mapping.items() if role != "ignore"
     }
 
-    # Correct the reference to model_class, using model.model_class instead
-    model_type, model_class_name = model.model_class.split(".", 1)  # Use model.model_class
+    model_type, model_class_name = model.model_class.split(".", 1)
 
     if model_type not in available_models or model_class_name not in available_models[model_type]:
         return {"error": "Invalid model class selected"}
