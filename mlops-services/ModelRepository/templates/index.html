@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Repository</title>
+    <style>
+        body {
+            background-color: rgb(20, 30, 40);
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            width: 50%;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #555;
+            text-align: center;
+        }
+        button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px; 
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #c0392b;
+        }
+        .create-button {
+            background-color: #3498db;
+            font-size: 16px;
+        }
+        .create-button:hover {
+            background-color: #2980b9;
+        }
+        .download-button {
+            background-color: #2ecc71;
+        }
+        .download-button:hover {
+            background-color: #27ae60;
+        }
+        .button-container {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px; 
+            width: 100%;
+        }
+        .button-container a {
+            width: 48%; 
+        }
+        .button-container button {
+            width: 100%;
+            padding: 10px 20px;  
+            cursor: pointer;
+            border-radius: 4px;
+            box-sizing: border-box; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Model Repository</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Model Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for model in model_names %}
+                    <tr>
+                        <td>{{ model }}</td>
+                        <td>
+                            <form action="/delete-model/{{ model }}" method="post" style="display: inline;">
+                                <button type="submit">Delete</button>
+                            </form>
+                            <form action="/download_model/{{ model }}" method="get" style="display: inline;">
+                                <button type="submit" class="download-button">Download</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="button-container">
+            <a href="http://localhost:5001">
+                <button class="create-button">Create a basic model</button>
+            </a>
+            <a href="http://localhost:5002">
+                <button class="create-button">Create a model from notebook</button>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

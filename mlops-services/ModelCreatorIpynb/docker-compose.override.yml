@@ -1,0 +1,9 @@
+services:
+  model-creator-ipynb-app:
+    build:
+      context: ..
+      dockerfile: 'mlops-services/ModelCreatorIpynb/Dockerfile'
+    ports:
+      - "5002:5002"
+    volumes:
+      - ..\model-repository:/app/model-repository

@@ -1,0 +1,9 @@
+services:
+  model-repository:
+    build:
+      context: ..
+      dockerfile: 'mlops-services/ModelRepository/Dockerfile'
+    ports:
+      - "4043:4043"
+    volumes:
+      - ..\model-repository:/app/model-repository

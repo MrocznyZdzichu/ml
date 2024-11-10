@@ -1,4 +1,5 @@
 import os
+import tempfile
 import pandas as pd
 import requests
 
@@ -25,7 +26,15 @@ def load_tabular_dataset(dbm, dataset_name, in_docker=False):
 
     hostname = 'localhost' if in_docker==False else 'mlops-data-repository-1'    
     file_server_url = f"http://{hostname}:4042/download/{dataset_location}"
-
+    localfile_path  = f'{dataset_location}'
+    
+    response = requests.get(file_server_url)
+    if response.status_code != 200:
+        raise Exception(f"Failed to download file from {file_server_url}. Status code: {response.status_code}")
+        
+    with open(localfile_path, 'wb') as f:
+        f.write(response.content)
+    
     pandas_dtypes, column_names = _prepare_columns_info(dbm, dataset_name)
     
     if headers_in_source == 1:
@@ -33,6 +42,8 @@ def load_tabular_dataset(dbm, dataset_name, in_docker=False):
     else:
         df = pd.read_csv(file_server_url, names=column_names, dtype=pandas_dtypes)
 
+    os.remove(localfile_path)
+    
     return df
 
 def _prepare_columns_info(dbm, dataset_name):

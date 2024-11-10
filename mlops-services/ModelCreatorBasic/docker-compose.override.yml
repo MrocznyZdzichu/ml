@@ -1,0 +1,9 @@
+services:
+  model-creator-basic-app:
+    build:
+      context: ..
+      dockerfile: 'mlops-services/ModelCreatorBasic/Dockerfile'
+    ports:
+      - "5001:5001"
+    volumes:
+      - ..\model-repository:/app/model-repository
