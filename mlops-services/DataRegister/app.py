@@ -8,9 +8,11 @@ import json
 from MLOps import DBManager
 from MLOps.DataGoverner import register_dataset, add_tab_details
 
+IN_DOCKER = os.getenv('IN_DOCKER') == 'Yes'
+
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
-db_manager = DBManager(dev_db=True, in_docker=True)
+db_manager = DBManager(dev_db=True, in_docker=IN_DOCKER)
 
 METADATA_SERVICE_URL = "http://mlops-metadata-server-1:4044"
 DATA_REPOSITORY_URL  = "http://mlops-data-repository-1:4042"

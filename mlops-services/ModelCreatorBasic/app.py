@@ -66,12 +66,14 @@ available_models = {
     }
 }
 
+IN_DOCKER = os.getenv('IN_DOCKER') == 'Yes'
+
 app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
 model_repository_dir = "/app/model-repository"
 
-dbm = DBManager(dev_db=True, in_docker=True)
+dbm = DBManager(dev_db=True, in_docker=IN_DOCKER)
 
 def get_datasets_list_from_metadata_service():
     response = requests.get("http://mlops-metadata-server-1:4044/datasets")
@@ -128,7 +130,7 @@ async def create_model(request: Request, model: ModelCreateRequest = Body(...)):
         random_state=model.random_state
     )
     
-    model_instance = model_creator.create_model(dbm, in_docker=True)
+    model_instance = model_creator.create_model(dbm, in_docker=IN_DOCKERs)
     model_instance.save_model()
 
     return RedirectResponse(url="/?message=Model created successfully!", status_code=303)

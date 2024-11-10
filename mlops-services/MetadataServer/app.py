@@ -1,14 +1,18 @@
 from fastapi import FastAPI, HTTPException, Query, Form
 from pydantic import BaseModel
 from typing import List, Optional
+
 import requests
+import os
 
 from MLOps.DBManager import DBManager 
 from MLOps.DataGoverner import get_datasets_list, get_datasets_columns, register_dataset, add_tab_details
 
+IN_DOCKER = os.getenv('IN_DOCKER') == 'Yes'
+
 app = FastAPI()
 
-dbm = DBManager(dev_db=True, in_docker=True)
+dbm = DBManager(dev_db=True, in_docker=IN_DOCKER)
 
 @app.get("/datasets")
 async def list_datasets():
