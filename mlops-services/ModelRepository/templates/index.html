@@ -52,6 +52,12 @@
         .create-button:hover {
             background-color: #2980b9;
         }
+        .download-button {
+            background-color: #2ecc71;
+        }
+        .download-button:hover {
+            background-color: #27ae60;
+        }
     </style>
 </head>
 <body>
@@ -71,6 +77,9 @@
                         <td>
                             <form action="/delete-model/{{ model }}" method="post" style="display: inline;">
                                 <button type="submit">Delete</button>
+                            </form>
+                            <form action="/download_model/{{ model }}" method="get" style="display: inline;">
+                                <button type="submit" class="download-button">Download</button>
                             </form>
                         </td>
                     </tr>
