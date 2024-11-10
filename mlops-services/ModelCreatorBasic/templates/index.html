@@ -13,10 +13,10 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
-            overflow: hidden; /* Prevents body from scrolling */
+            margin: 10px 0; /* Zmniejszony odstęp od góry i dołu */
+            overflow: hidden;
         }
-
+    
         .container {
             width: 30%;
             max-width: 600px;
@@ -24,19 +24,16 @@
             padding: 20px;
             border-radius: 8px;
             box-sizing: border-box;
-            overflow-y: auto; /* Allows vertical scroll for the form container */
-            max-height: 90vh; /* Limits the container height */
+            overflow-y: auto;
+            max-height: 95vh; /* Zmniejszona wysokość kontenera */
         }
-
+    
         h1 {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            font-size: 1.5em;
         }
-
-        .form-container {
-            margin-top: 20px;
-        }
-
+    
         input[type="text"], select {
             width: 100%;
             padding: 10px;
@@ -47,7 +44,7 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
-
+    
         input[type="submit"] {
             width: 100%;
             padding: 12px;
@@ -58,36 +55,32 @@
             font-size: 16px;
             cursor: pointer;
         }
-
+    
         input[type="submit"]:hover {
             background-color: #0073e6;
         }
-
-        /* Styles for the table */
-        table {
-            width: 100%;
-            margin: 20px 0;
-            border-collapse: collapse;
-        }
-
+    
         table, th, td {
             border: 1px solid #444;
         }
-
+    
         th, td {
-            padding: 10px;
-            text-align: center;
+            padding: 5px;
+            font-size: 0.9em;
+            line-height: 1.2em;
         }
-
-        th {
-            background-color: #444;
-        }
-
-        /* Scrollable table container */
+    
         .table-container {
-            max-height: 200px; /* Adjust this height as needed */
+            max-height: 300px;
             overflow-y: auto;
             margin-top: 10px;
+        }
+    
+        .table-container select {
+            padding: 5px;
+            font-size: 0.9em;
+            height: 30px; /* Zmniejszona wysokość list rozwijanych */
+            border-radius: 2px;
         }
     </style>
 </head>
