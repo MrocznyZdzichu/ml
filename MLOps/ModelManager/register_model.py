@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 
 
-def register_model(dbm, model):
+def register_model(dbm, model, do_save=True):
     """
     Insert a trained model's metadata into the MLAPP.MODELS table.
     
@@ -11,22 +11,22 @@ def register_model(dbm, model):
     :return: None
     """
 
-    model.save_model()
+    if do_save:
+        model.save_model()
     _insert_models_table(dbm, model)
     _insert_dataroles(dbm, model)
 
 def _insert_models_table(dbm, model):
     insert_query = """
     INSERT INTO MODELS 
-    (MODEL_NAME, ESTIMATOR_CLASS, DATASET_NAME, ESTIMATOR_PARAMETERS, LOCALIZATION, CREATED_AT, DELETED_AT)
-    VALUES (:model_name, :estimator_class, :dataset_name, :estimator_parameters, :localization, :created_at, :deleted_at)
+    (MODEL_NAME, ESTIMATOR_CLASS, DATASET_NAME, ESTIMATOR_PARAMETERS, CREATED_AT, DELETED_AT)
+    VALUES (:model_name, :estimator_class, :dataset_name, :estimator_parameters, :created_at, :deleted_at)
     """
     insert_model_params = {
         'model_name': model.get_name(),
         'estimator_class': model.get_estimator_class().__name__,
         'dataset_name': model.get_dataset_name(),
         'estimator_parameters': json.dumps(model.get_estimator_parameters()),
-        'localization' : model.get_storage_localization(),
         'created_at': datetime.now(),
         'deleted_at': None
     }
