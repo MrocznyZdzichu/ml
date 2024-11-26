@@ -72,6 +72,19 @@
             border-radius: 4px;
             box-sizing: border-box; 
         }
+        .preview-button {
+            background-color: #1abc9c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .preview-button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -98,6 +111,11 @@
                             <form action="http://localhost:5003/register-model/{{ model }}" method="post" style="display: inline;">
                                 <button type="submit" class="download-button">Register</button>
                             </form>
+                            <button 
+                                class="preview-button" 
+                                {% if model not in registered_models %}disabled{% endif %}>
+                                Preview info
+                            </button>
                         </td>
                     </tr>
                 {% endfor %}

@@ -3,10 +3,21 @@ from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 import os
 import shutil
+import httpx
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 _model_store_dir = "/app/model-repository"
+
+async def get_registered_models():
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get("http://mlops-model-manager-1:5003/registered-models")
+        response.raise_for_status()
+        return response.json()  
+    except httpx.RequestError as e:
+        print(f"Error fetching registered models: {e}")
+        return []
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
@@ -16,8 +27,16 @@ async def index(request: Request):
         name for name in os.listdir(_model_store_dir)
         if os.path.isdir(os.path.join(_model_store_dir, name)) and name != ".ipynb_checkpoints"
     ]
-    
-    return templates.TemplateResponse("index.html", {"request": request, "model_names": model_names})
+    registered_models = await get_registered_models()
+
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "model_names": model_names,
+            "registered_models": registered_models,
+        },
+    )
 
 @app.post("/delete-model/{model_name}")
 async def delete_model(model_name: str):
