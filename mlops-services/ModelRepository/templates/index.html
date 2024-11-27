@@ -80,10 +80,38 @@
             cursor: pointer;
             border-radius: 4px;
         }
-        
         .preview-button:disabled {
             background-color: #95a5a6;
             cursor: not-allowed;
+        }
+        /* Style for pop-up modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgb(30, 40, 50);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+        .modal h2 {
+            margin-top: 0;
+        }
+        .modal p {
+            margin: 5px 0;
+        }
+        .modal-close {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            float: right;
         }
     </style>
 </head>
@@ -113,7 +141,8 @@
                             </form>
                             <button 
                                 class="preview-button" 
-                                {% if model not in registered_models %}disabled{% endif %}>
+                                {% if model not in registered_models %}disabled{% endif %}
+                                onclick="previewModelInfo('{{ model }}')">
                                 Preview info
                             </button>
                         </td>
@@ -130,5 +159,56 @@
             </a>
         </div>
     </div>
+
+    <!-- Modal for displaying model info -->
+    <div id="modelInfoModal" class="modal">
+        <button class="modal-close" onclick="closeModal()">Close</button>
+        <h2>Model Info</h2>
+        <p id="modalContent">Loading...</p>
+    </div>
+
+    <script>
+        async function previewModelInfo(modelName) {
+            const modal = document.getElementById('modelInfoModal');
+            const modalContent = document.getElementById('modalContent');
+
+            // Show modal
+            modal.style.display = 'block';
+            modalContent.textContent = 'Loading...';
+
+            try {
+                const response = await fetch(`http://localhost:5003/model-metadata/${modelName}`);
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.statusText}`);
+                }
+                const data = await response.json();
+                console.log(data.model_dataroles);
+                console.log(data.model_dataroles[0].column_name);
+                
+                modalContent.innerHTML = `
+                    <p><strong>Name:</strong> ${data.model_info.model_name}</p>
+                    <p><strong>Estimator Class:</strong> ${data.model_info.estimator_class}</p>
+                    <p><strong>Dataset Name:</strong> ${data.model_info.dataset_name}</p>
+                    <p><strong>Parameters:</strong> ${JSON.stringify(data.model_info.estimator_parameters)}</p>
+                    <p><strong>Created At:</strong> ${data.model_info.created_at}</p>
+                    <hr>
+                    <h3>Data Roles</h3>
+                    <ul>
+                        ${data.model_dataroles.map(role => `
+                            <li>${role.column_name} - ${role.datalevel} - ${role.datarole} - Role: ${role.datatype}</li>
+                        `).join('')}
+                    </ul>
+                `;
+            } catch (error) {
+                modalContent.textContent = `Failed to fetch model info: ${error.message}`;
+            }
+        }
+
+
+        function closeModal() {
+            const modal = document.getElementById('modelInfoModal');
+            modal.style.display = 'none';
+        }
+    </script>
 </body>
 </html>
