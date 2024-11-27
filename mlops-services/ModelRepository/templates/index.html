@@ -125,9 +125,9 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="modelsTable">
                 {% for model in model_names %}
-                    <tr>
+                    <tr id="modelRow-{{ model }}">
                         <td>{{ model }}</td>
                         <td>
                             <form action="/delete-model/{{ model }}" method="post" style="display: inline;">
@@ -137,7 +137,9 @@
                                 <button type="submit" class="download-button">Download</button>
                             </form>
                             <form action="http://localhost:5003/register-model/{{ model }}" method="post" style="display: inline;">
-                                <button type="submit" class="download-button">Register</button>
+                                <button type="submit" class="download-button" id="registerButton-{{ model }}">
+                                    Register
+                                </button>
                             </form>
                             <button 
                                 class="preview-button" 
@@ -168,6 +170,29 @@
     </div>
 
     <script>
+        async function fetchRegisteredModels() {
+            try {
+                const response = await fetch('http://localhost:5003/registered-models');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch registered models');
+                }
+                const registeredModels = await response.json();
+                updateRegisterButtons(registeredModels);
+            } catch (error) {
+                console.error('Error fetching registered models:', error);
+            }
+        }
+
+        function updateRegisterButtons(registeredModels) {
+            registeredModels.forEach(model => {
+                const registerButton = document.getElementById(`registerButton-${model}`);
+                if (registerButton) {
+                    registerButton.disabled = true;
+                    registerButton.textContent = "Registered *(^.^)*";
+                }
+            });
+        }
+
         async function previewModelInfo(modelName) {
             const modal = document.getElementById('modelInfoModal');
             const modalContent = document.getElementById('modalContent');
@@ -220,11 +245,13 @@
             }
         }
 
-
         function closeModal() {
             const modal = document.getElementById('modelInfoModal');
             modal.style.display = 'none';
         }
+
+        // Fetch registered models when the page loads
+        window.onload = fetchRegisteredModels;
     </script>
 </body>
 </html>
