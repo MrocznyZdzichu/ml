@@ -201,14 +201,17 @@
                             </tr>
                         </thead>
                         <tbody>
-                            ${data.model_dataroles.map(role => `
-                                <tr>
-                                    <td>${role.column_name}</td>
-                                    <td>${role.datalevel}</td>
-                                    <td>${role.datarole}</td>
-                                    <td>${role.datatype}</td>
-                                </tr>
-                            `).join('')}
+                            ${data.model_dataroles.map(role => {
+                                const isTargetRole = role.datarole === 'target';
+                                return `
+                                    <tr>
+                                        <td ${isTargetRole ? 'style="text-decoration: underline;"' : ''}>${role.column_name}</td>
+                                        <td ${isTargetRole ? 'style="text-decoration: underline;"' : ''}>${role.datalevel}</td>
+                                        <td ${isTargetRole ? 'style="text-decoration: underline;"' : ''}>${role.datarole}</td>
+                                        <td ${isTargetRole ? 'style="text-decoration: underline;"' : ''}>${role.datatype}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
                         </tbody>
                     </table>
                 `;
