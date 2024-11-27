@@ -182,8 +182,6 @@
                     throw new Error(`Error: ${response.statusText}`);
                 }
                 const data = await response.json();
-                console.log(data.model_dataroles);
-                console.log(data.model_dataroles[0].column_name);
                 
                 modalContent.innerHTML = `
                     <p><strong>Name:</strong> ${data.model_info.model_name}</p>
@@ -193,11 +191,26 @@
                     <p><strong>Created At:</strong> ${data.model_info.created_at}</p>
                     <hr>
                     <h3>Data Roles</h3>
-                    <ul>
-                        ${data.model_dataroles.map(role => `
-                            <li>${role.column_name} - ${role.datalevel} - ${role.datarole} - Role: ${role.datatype}</li>
-                        `).join('')}
-                    </ul>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Column Name</th>
+                                <th>Data Level</th>
+                                <th>Data Role</th>
+                                <th>Data Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.model_dataroles.map(role => `
+                                <tr>
+                                    <td>${role.column_name}</td>
+                                    <td>${role.datalevel}</td>
+                                    <td>${role.datarole}</td>
+                                    <td>${role.datatype}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
                 `;
             } catch (error) {
                 modalContent.textContent = `Failed to fetch model info: ${error.message}`;
