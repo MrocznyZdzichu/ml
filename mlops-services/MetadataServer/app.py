@@ -6,7 +6,8 @@ import requests
 import os
 
 from MLOps.DBManager import DBManager 
-from MLOps.DataGoverner import get_datasets_list, get_datasets_columns, register_dataset, add_tab_details
+from MLOps.MetadataManager import get_datasets_list, get_datasets_columns, register_dataset, add_tab_details
+from MLOps.MetadataManager import get_registered_models_list
 
 IN_DOCKER = os.getenv('IN_DOCKER') == 'Yes'
 
@@ -83,3 +84,7 @@ async def add_columns_details(
         return {"message": f"Columns for dataset '{dataset_name}' added successfully!"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+@app.get("/models/get_registered_models")
+async def get_registered_models():
+    return get_registered_models_list(dbm)

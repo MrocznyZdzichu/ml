@@ -1,7 +1,9 @@
 import os
+import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from MLOps.ModelManager import register_model, get_registered_models_list, get_model_metadata
+from MLOps.ModelManager import register_model, get_model_metadata
+from MLOps.MetadataManager import get_registered_models_list
 from MLOps import DBManager
 
 app = FastAPI()
@@ -16,9 +18,12 @@ app.add_middleware(
 IN_DOCKER = os.getenv('IN_DOCKER') == 'Yes'
 dbm = DBManager(dev_db=True, in_docker=IN_DOCKER)
 
+METADATA_SERVICE_URL = "http://mlops-metadata-server-1:4044"
+    
 @app.get("/registered-models")
 async def registered_models():
-    return get_registered_models_list(dbm)
+    response = requests.get(f"{METADATA_SERVICE_URL}/models/get_registered_models")
+    return response.json()
     
 @app.post("/register-model/{model_name}")
 async def register_model_endpoint(model_name: str):

@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, mean_squared_error
 
-from ..DataGoverner import *
+from ..MetadataManager import *
 from ..Model import Model
 
 from .ModelCreatorAbst import ModelCreatorAbst
