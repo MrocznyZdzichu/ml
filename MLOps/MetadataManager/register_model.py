@@ -22,9 +22,10 @@ def _insert_models_table(dbm, model):
     (MODEL_NAME, ESTIMATOR_CLASS, DATASET_NAME, ESTIMATOR_PARAMETERS, CREATED_AT, DELETED_AT)
     VALUES (:model_name, :estimator_class, :dataset_name, :estimator_parameters, :created_at, :deleted_at)
     """
+    model_class_used = model.get_estimator_class() if isinstance(model.get_estimator_class(), str) else model.get_estimator_class().__name__
     insert_model_params = {
         'model_name': model.get_name(),
-        'estimator_class': model.get_estimator_class().__name__,
+        'estimator_class': model_class_used,
         'dataset_name': model.get_dataset_name(),
         'estimator_parameters': json.dumps(model.get_estimator_parameters()),
         'created_at': datetime.now(),

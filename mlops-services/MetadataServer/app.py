@@ -6,8 +6,8 @@ import requests
 import os
 
 from MLOps.DBManager import DBManager 
-from MLOps.MetadataManager import get_datasets_list, get_datasets_columns, register_dataset, add_tab_details
-from MLOps.MetadataManager import get_registered_models_list
+from MLOps.MetadataManager import *
+from MLOps import Model
 
 IN_DOCKER = os.getenv('IN_DOCKER') == 'Yes'
 
@@ -33,6 +33,18 @@ class ColumnData(BaseModel):
     datalevel: str
     column_order: int
 
+@app.post("/datasets/{dataset_name}/columns")
+async def add_columns_details(
+    dataset_name: str,
+    columns: List[ColumnData]
+):
+    try:
+        columns_dict = [column.dict() for column in columns]
+        add_tab_details(dbm, dataset_name, columns_dict)
+        return {"message": f"Columns for dataset '{dataset_name}' added successfully!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+        
 @app.post("/datasets/register")
 async def register_dataset_endpoint(
     name: str = Form(...),
@@ -72,19 +84,24 @@ async def register_dataset_endpoint(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
-
-@app.post("/datasets/{dataset_name}/columns")
-async def add_columns_details(
-    dataset_name: str,
-    columns: List[ColumnData]
-):
-    try:
-        columns_dict = [column.dict() for column in columns]
-        add_tab_details(dbm, dataset_name, columns_dict)
-        return {"message": f"Columns for dataset '{dataset_name}' added successfully!"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-
 @app.get("/models/get_registered_models")
 async def get_registered_models():
     return get_registered_models_list(dbm)
+
+@app.post("/models/register_model")
+async def model_register(model_data: dict):
+    try:
+        model = Model(
+            name=model_data["name"],
+            estimator_class=model_data["estimator_class"],
+            dataset_name=model_data["dataset_name"],
+            estimator_parameters=model_data["estimator_parameters"],
+            estimator=None,  # Estimator object not needed in metadata
+            features_names=[],  
+            dataroles=model_data["dataroles"]
+        )
+        register_model(dbm, model, do_save=False)
+
+        return {"message": f"Model '{model.get_name()}' successfully registered in the database."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error registering model: {e}")
