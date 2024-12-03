@@ -6,7 +6,7 @@ import requests
 import os
 
 from MLOps.DBManager import DBManager 
-from MLOps.MetadataManager import *
+from MLOps import MetadataManager
 from MLOps import Model
 
 IN_DOCKER = os.getenv('IN_DOCKER') == 'Yes'
@@ -17,12 +17,12 @@ dbm = DBManager(dev_db=True, in_docker=IN_DOCKER)
 
 @app.get("/datasets")
 async def list_datasets():
-    return get_datasets_list(dbm)
+    return MetadataManager.get_datasets_list(dbm)
 
 @app.get("/datasets/{dataset_name}/columns")
 async def list_dataset_columns(dataset_name: str, details: bool = Query(False)):
     try:
-        dataset_columns = get_datasets_columns(dbm, dataset_name, details)
+        dataset_columns = MetadataManager.get_datasets_columns(dbm, dataset_name, details)
         return dataset_columns
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -40,7 +40,7 @@ async def add_columns_details(
 ):
     try:
         columns_dict = [column.dict() for column in columns]
-        add_tab_details(dbm, dataset_name, columns_dict)
+        MetadataManager.add_tab_details(dbm, dataset_name, columns_dict)
         return {"message": f"Columns for dataset '{dataset_name}' added successfully!"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
@@ -78,15 +78,15 @@ async def register_dataset_endpoint(
         raise HTTPException(status_code=404, detail="JSON file not found in repository")
 
     try:
-        register_dataset(dbm, name, type, file_url, has_header, is_structured, is_tabelaric, description)
-        add_tab_details(dbm, name, columns_data)
+        MetadataManager.register_dataset(dbm, name, type, file_url, has_header, is_structured, is_tabelaric, description)
+        MetadataManager.add_tab_details(dbm, name, columns_data)
         return {"message": f"Dataset '{name}' registered successfully!"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 @app.get("/models/get_registered_models")
 async def get_registered_models():
-    return get_registered_models_list(dbm)
+    return MetadataManager.get_registered_models_list(dbm)
 
 @app.post("/models/register_model")
 async def model_register(model_data: dict):
@@ -100,8 +100,33 @@ async def model_register(model_data: dict):
             features_names=[],  
             dataroles=model_data["dataroles"]
         )
-        register_model(dbm, model, do_save=False)
+        MetadataManager.register_model(dbm, model, do_save=False)
 
         return {"message": f"Model '{model.get_name()}' successfully registered in the database."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error registering model: {e}")
+
+@app.get("/models/{model_name}/get_metadata")
+async def api_get_model_metadata(model_name: str):
+    try:
+        model_info, model_dataroles = MetadataManager.get_model_metadata(dbm, model_name)
+        return {
+            "model_info": {
+                "model_name": model_info[0],
+                "estimator_class": model_info[1],
+                "dataset_name": model_info[2],
+                "estimator_parameters": model_info[3],
+                "created_at": model_info[4],
+            },
+            "model_dataroles": [
+                {
+                    "column_name": role[0],
+                    "datatype": role[1],
+                    "datalevel": role[2],
+                    "datarole": role[3],
+                }
+                for role in model_dataroles
+            ],
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving model metadata: {e}")

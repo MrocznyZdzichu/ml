@@ -8,7 +8,6 @@ import requests
 import json
 
 from MLOps import DBManager
-from MLOps.MetadataManager import register_dataset, add_tab_details
 
 IN_DOCKER = os.getenv('IN_DOCKER') == 'Yes'
 

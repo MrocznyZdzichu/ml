@@ -202,7 +202,7 @@
             modalContent.textContent = 'Loading...';
 
             try {
-                const response = await fetch(`http://localhost:5003/model-metadata/${modelName}`);
+                const response = await fetch(`http://localhost:5003/${modelName}/model-metadata`);
                 if (!response.ok) {
                     throw new Error(`Error: ${response.statusText}`);
                 }
