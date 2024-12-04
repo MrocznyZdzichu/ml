@@ -130,7 +130,7 @@ async def create_model(request: Request, model: ModelCreateRequest = Body(...)):
         random_state=model.random_state
     )
     
-    model_instance = model_creator.create_model(dbm, in_docker=IN_DOCKERs)
+    model_instance = model_creator.create_model(dbm, in_docker=IN_DOCKER)
     model_instance.save_model()
 
     return RedirectResponse(url="/?message=Model created successfully!", status_code=303)

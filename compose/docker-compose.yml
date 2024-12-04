@@ -1,5 +1,5 @@
 name: mlops
-
+  
 services:
   db-prod:
     image: "gvenzl/oracle-xe:21-slim"

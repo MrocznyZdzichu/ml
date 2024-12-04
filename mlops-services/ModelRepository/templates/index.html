@@ -72,6 +72,66 @@
             border-radius: 4px;
             box-sizing: border-box; 
         }
+        .preview-button {
+            background-color: #1abc9c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .preview-button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .unregister-button {
+            background-color: #f39c12;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .unregister-button:hover {
+            background-color: #e67e22;
+        }
+        .unregister-button:disabled {
+            background-color: #bdc3c7;  
+            cursor: not-allowed;
+        }
+        
+        .unregister-button:hover:disabled {
+            background-color: #bdc3c7;  
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgb(30, 40, 50);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+        .modal h2 {
+            margin-top: 0;
+        }
+        .modal p {
+            margin: 5px 0;
+        }
+        .modal-close {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            float: right;
+        }
     </style>
 </head>
 <body>
@@ -84,17 +144,36 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="modelsTable">
                 {% for model in model_names %}
-                    <tr>
+                    <tr id="modelRow-{{ model }}">
                         <td>{{ model }}</td>
                         <td>
+                            <form action="/unregister-model/{{ model }}" method="post" style="display: inline;">
+                                <button 
+                                    type="submit" 
+                                    class="unregister-button" 
+                                    {% if model not in registered_models %}disabled{% endif %}>
+                                    Unregister
+                                </button>
+                            </form>
                             <form action="/delete-model/{{ model }}" method="post" style="display: inline;">
                                 <button type="submit">Delete</button>
                             </form>
                             <form action="/download_model/{{ model }}" method="get" style="display: inline;">
                                 <button type="submit" class="download-button">Download</button>
                             </form>
+                            <form action="/register-model/{{ model }}" method="post" style="display: inline;">
+                                <button type="submit" class="download-button" id="registerButton-{{ model }}">
+                                    Register
+                                </button>
+                            </form>
+                            <button 
+                                class="preview-button" 
+                                {% if model not in registered_models %}disabled{% endif %}
+                                onclick="previewModelInfo('{{ model }}')">
+                                Preview info
+                            </button>
                         </td>
                     </tr>
                 {% endfor %}
@@ -109,5 +188,97 @@
             </a>
         </div>
     </div>
+
+    <!-- Modal for displaying model info -->
+    <div id="modelInfoModal" class="modal">
+        <button class="modal-close" onclick="closeModal()">Close</button>
+        <h2>Model Info</h2>
+        <p id="modalContent">Loading...</p>
+    </div>
+
+    <script>
+        async function fetchRegisteredModels() {
+            try {
+                const response = await fetch('http://localhost:5003/registered-models');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch registered models');
+                }
+                const registeredModels = await response.json();
+                updateRegisterButtons(registeredModels);
+            } catch (error) {
+                console.error('Error fetching registered models:', error);
+            }
+        }
+
+        function updateRegisterButtons(registeredModels) {
+            registeredModels.forEach(model => {
+                const registerButton = document.getElementById(`registerButton-${model}`);
+                if (registerButton) {
+                    registerButton.disabled = true;
+                    registerButton.textContent = "Registered *(^.^)*";
+                }
+            });
+        }
+
+        async function previewModelInfo(modelName) {
+            const modal = document.getElementById('modelInfoModal');
+            const modalContent = document.getElementById('modalContent');
+
+            // Show modal
+            modal.style.display = 'block';
+            modalContent.textContent = 'Loading...';
+
+            try {
+                const response = await fetch(`http://localhost:5003/${modelName}/model-metadata`);
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.statusText}`);
+                }
+                const data = await response.json();
+                
+                modalContent.innerHTML = `
+                    <p><strong>Name:</strong> ${data.model_info.model_name}</p>
+                    <p><strong>Estimator Class:</strong> ${data.model_info.estimator_class}</p>
+                    <p><strong>Dataset Name:</strong> ${data.model_info.dataset_name}</p>
+                    <p><strong>Parameters:</strong> ${JSON.stringify(data.model_info.estimator_parameters)}</p>
+                    <p><strong>Created At:</strong> ${data.model_info.created_at}</p>
+                    <hr>
+                    <h3>Data Roles</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Column Name</th>
+                                <th>Data Level</th>
+                                <th>Data Role</th>
+                                <th>Data Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.model_dataroles.map(role => {
+                                const isTargetRole = role.datarole === 'target';
+                                return `
+                                    <tr>
+                                        <td ${isTargetRole ? 'style="text-decoration: underline;"' : ''}>${role.column_name}</td>
+                                        <td ${isTargetRole ? 'style="text-decoration: underline;"' : ''}>${role.datalevel}</td>
+                                        <td ${isTargetRole ? 'style="text-decoration: underline;"' : ''}>${role.datarole}</td>
+                                        <td ${isTargetRole ? 'style="text-decoration: underline;"' : ''}>${role.datatype}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                modalContent.textContent = `Failed to fetch model info: ${error.message}`;
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modelInfoModal');
+            modal.style.display = 'none';
+        }
+
+        // Fetch registered models when the page loads
+        window.onload = fetchRegisteredModels;
+    </script>
 </body>
 </html>

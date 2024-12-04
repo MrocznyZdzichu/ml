@@ -15,7 +15,7 @@ class ModelCreatorIpynb(ModelCreatorAbst):
     - The notebook creates an object of the `Model` class named `model`. This object is expected
       to be defined at the end of the model creation process.
     - Data for the model is registered in metadata and loaded using the `load_tabular_dataset`
-      function from the `MLOps.DataGoverner` module.
+      function from the `MLOps.MetadataManager` module.
 
     Args:
         notebook_path (str): Path to the notebook (.ipynb) file to be converted.

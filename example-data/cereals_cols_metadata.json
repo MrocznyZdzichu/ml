@@ -1,0 +1,184 @@
+[
+
+    {
+
+        "column_name": "Cereal Name",
+
+        "datatype": "string", 
+
+        "datalevel": "category",
+
+        "column_order": 0
+
+    },
+
+    {
+
+        "column_name": "Manufacturer",
+
+        "datatype": "string",
+
+        "datalevel": "category",
+
+        "column_order": 1
+
+    },
+
+    {
+
+        "column_name": "Type",
+
+        "datatype": "string",
+
+        "datalevel": "category",
+
+        "column_order": 2
+
+    },
+
+    {
+
+        "column_name": "Calories",
+
+        "datatype": "float",
+
+        "datalevel": "value",
+
+        "column_order": 3
+
+    },
+
+    {
+
+        "column_name": "Protein (g)",
+
+        "datatype": "float",
+
+        "datalevel": "value",
+
+        "column_order": 4
+
+    },
+
+    {
+
+        "column_name": "Fat",
+
+        "datatype": "float",
+
+        "datalevel": "value",
+
+        "column_order": 5
+
+    },
+
+    {
+
+        "column_name": "Sodium",
+
+        "datatype": "float",
+
+        "datalevel": "value",
+
+        "column_order": 6
+
+    },
+
+    {
+
+        "column_name": "Dietary Fiber",
+
+        "datatype": "float",
+
+        "datalevel": "value",
+
+        "column_order": 7
+
+    },
+
+    {
+
+        "column_name": "Carbs",
+
+        "datatype": "float",
+
+        "datalevel": "value",
+
+        "column_order": 8
+
+    },
+
+    {
+
+        "column_name": "Sugars",
+
+        "datatype": "float",
+
+        "datalevel": "value",
+
+        "column_order": 9
+
+    },
+
+    {
+
+        "column_name": "Display Shelf",
+
+        "datatype": "int",
+
+        "datalevel": "value",
+
+        "column_order": 10
+
+    },
+
+    {
+
+        "column_name": "Potassium",
+
+        "datatype": "float",
+
+        "datalevel": "value",
+
+        "column_order": 11
+
+    },
+
+    {
+
+        "column_name": "Vitamins and Minerals",
+
+        "datatype": "float",
+
+        "datalevel": "value",
+
+        "column_order": 12
+
+    },
+
+    {
+
+        "column_name": "Serving Size Weight",
+
+        "datatype": "float",
+
+        "datalevel": "value",
+
+        "column_order": 13
+
+    },
+
+    {
+
+        "column_name": "Cups per Serving",
+
+        "datatype": "float",
+
+        "datalevel": "value",
+
+        "column_order": 14
+
+    }
+
+]
+

@@ -18,7 +18,6 @@ class DBManager:
             hostname = 'mlops-db-prod-1' if not dev_db else 'mlops-db-dev-1'
             port = 1521
         else:
-            # Use localhost for local development
             hostname = 'localhost'
 
         self.__username = 'MLAPP'
@@ -65,3 +64,21 @@ class DBManager:
             cursor = connection.cursor()
             cursor.execute(query, data_dict)
             connection.commit()
+
+    def execute_delete(self, query, data_dict=None):
+        """
+        Executes a DELETE query and commits the changes.
+    
+        Args:
+            query (str): SQL delete statement.
+            data_dict (dict, optional): Parameters for the SQL delete statement.
+    
+        Returns:
+            int: The number of rows deleted.
+        """
+        with self.__yield_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute(query, data_dict)
+            rows_deleted = cursor.rowcount
+            connection.commit()
+            return rows_deleted

@@ -1,0 +1,7 @@
+services:
+  model-manager:
+    build:
+      context: ..
+      dockerfile: 'mlops-services/ModelManager/Dockerfile'
+    ports:
+      - "5003:5003"
