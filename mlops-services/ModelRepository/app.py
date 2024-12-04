@@ -9,10 +9,13 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 _model_store_dir = "/app/model-repository"
 
+MODEL_MANAGER_URL = "http://mlops-model-manager-1:5003"
+
+
 async def get_registered_models():
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get("http://mlops-model-manager-1:5003/registered-models")
+            response = await client.get(f"{MODEL_MANAGER_URL}/registered-models")
         response.raise_for_status()
         return response.json()  
     except httpx.RequestError as e:
@@ -75,7 +78,7 @@ async def download_model(model_name: str):
 async def fetch_model_metadata(model_name: str):
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get(f"http://mlops-model-manager-1:5003/model-metadata/{model_name}")
+            response = await client.get(f"{MODEL_MANAGER_URL}/model-metadata/{model_name}")
         response.raise_for_status()
         return JSONResponse(content=response.json())
     except httpx.RequestError as e:
@@ -88,3 +91,27 @@ async def fetch_model_metadata(model_name: str):
             status_code=response.status_code,
             content={"detail": response.json().get("detail", "Unknown error")}
         )
+
+@app.post("/register-model/{model_name}")
+async def api_register_model(model_name: str):
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(f"{MODEL_MANAGER_URL}/{model_name}/register-model")
+        response.raise_for_status()  
+        return RedirectResponse(url="/", status_code=303)
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=500, detail=f"Error unregistering model: {e}")
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=f"Error: {e.response.text}")
+    
+@app.post("/unregister-model/{model_name}")
+async def unregister_model(model_name: str):
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(f"{MODEL_MANAGER_URL}/{model_name}/unregister-model")
+        response.raise_for_status()  
+        return RedirectResponse(url="/", status_code=303)
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=500, detail=f"Error unregistering model: {e}")
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=f"Error: {e.response.text}")

@@ -84,7 +84,18 @@
             background-color: #95a5a6;
             cursor: not-allowed;
         }
-        /* Style for pop-up modal */
+        .unregister-button {
+            background-color: #f39c12;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .unregister-button:hover {
+            background-color: #e67e22;
+        }
         .modal {
             display: none;
             position: fixed;
@@ -129,14 +140,17 @@
                 {% for model in model_names %}
                     <tr id="modelRow-{{ model }}">
                         <td>{{ model }}</td>
-                        <td>
+                         <td>
+                            <form action="/unregister-model/{{ model }}" method="post" style="display: inline;">
+                                <button type="submit" class="unregister-button">Unregister</button>
+                            </form>
                             <form action="/delete-model/{{ model }}" method="post" style="display: inline;">
                                 <button type="submit">Delete</button>
                             </form>
                             <form action="/download_model/{{ model }}" method="get" style="display: inline;">
                                 <button type="submit" class="download-button">Download</button>
                             </form>
-                            <form action="http://localhost:5003/{{ model }}/register-model" method="post" style="display: inline;">
+                            <form action="/register-model/{{ model }}" method="post" style="display: inline;">
                                 <button type="submit" class="download-button" id="registerButton-{{ model }}">
                                     Register
                                 </button>
