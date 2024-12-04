@@ -135,7 +135,7 @@ async def api_get_model_metadata(model_name: str):
         raise HTTPException(status_code=500, detail=f"Error retrieving model metadata: {e}")
 
 
-@app.post("models/unregister-model")
+@app.post("/models/{model_name}/unregister-model")
 async def api_unregister_model(model_name: str):
     model_id = MetadataManager.get_model_id(dbm, model_name)
-    
+    MetadataManager.unregister_model(dbm, model_id)

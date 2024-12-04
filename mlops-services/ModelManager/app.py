@@ -72,4 +72,16 @@ async def model_metadata(model_name: str):
 
 @app.post("/{model_name}/unregister-model")
 async def api_unregister_model(model_name: str):
-    pass
+    try:
+        url = f"{METADATA_SERVER_URL}/models/{model_name}/unregister-model"
+        response = requests.post(url)
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"Error from metadata-server: {response.text}"
+            )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving model metadata: {e}")
