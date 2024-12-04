@@ -1,5 +1,7 @@
 FROM python:3.12-slim
 
+RUN ln -snf /usr/share/zoneinfo/Europe/Warsaw /etc/localtime && echo "Europe/Warsaw" > /etc/timezone
+
 WORKDIR /app
 
 ENV IN_DOCKER=Yes

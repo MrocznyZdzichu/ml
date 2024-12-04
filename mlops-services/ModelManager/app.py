@@ -19,11 +19,13 @@ IN_DOCKER = os.getenv('IN_DOCKER') == 'Yes'
 dbm = DBManager(dev_db=True, in_docker=IN_DOCKER)
 
 METADATA_SERVER_URL = "http://mlops-metadata-server-1:4044"
-    
+
+
 @app.get("/registered-models")
 async def registered_models():
     response = requests.get(f"{METADATA_SERVER_URL}/models/get_registered_models")
     return response.json()
+
 
 @app.post("/{model_name}/register-model")
 async def register_model(model_name: str):
@@ -49,7 +51,8 @@ async def register_model(model_name: str):
             )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error registering model: {e}")
-        
+
+
 @app.get("/{model_name}/model-metadata")
 async def model_metadata(model_name: str):
     try:
@@ -65,3 +68,8 @@ async def model_metadata(model_name: str):
             )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving model metadata: {e}")
+
+
+@app.post("/{model_name}/unregister-model")
+async def api_unregister_model(model_name: str):
+    pass

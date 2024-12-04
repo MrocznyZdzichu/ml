@@ -15,6 +15,8 @@ app = FastAPI()
 
 dbm = DBManager(dev_db=True, in_docker=IN_DOCKER)
 
+################### datasets ###################
+
 @app.get("/datasets")
 async def list_datasets():
     return MetadataManager.get_datasets_list(dbm)
@@ -84,6 +86,7 @@ async def register_dataset_endpoint(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
+################### models ###################
 @app.get("/models/get_registered_models")
 async def get_registered_models():
     return MetadataManager.get_registered_models_list(dbm)
@@ -130,3 +133,9 @@ async def api_get_model_metadata(model_name: str):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving model metadata: {e}")
+
+
+@app.post("models/unregister-model")
+async def api_unregister_model(model_name: str):
+    model_id = MetadataManager.get_model_id(dbm, model_name)
+    
