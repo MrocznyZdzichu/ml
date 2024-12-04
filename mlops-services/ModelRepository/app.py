@@ -51,6 +51,8 @@ async def delete_model(model_name: str):
         raise HTTPException(status_code=404, detail="Model not found.")
     
     try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(f"{MODEL_MANAGER_URL}/{model_name}/unregister-model")
         shutil.rmtree(model_path)
         return RedirectResponse(url="/", status_code=303)
     except Exception as e:

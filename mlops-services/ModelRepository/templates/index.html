@@ -96,6 +96,14 @@
         .unregister-button:hover {
             background-color: #e67e22;
         }
+        .unregister-button:disabled {
+            background-color: #bdc3c7;  
+            cursor: not-allowed;
+        }
+        
+        .unregister-button:hover:disabled {
+            background-color: #bdc3c7;  
+        }
         .modal {
             display: none;
             position: fixed;
@@ -140,9 +148,14 @@
                 {% for model in model_names %}
                     <tr id="modelRow-{{ model }}">
                         <td>{{ model }}</td>
-                         <td>
+                        <td>
                             <form action="/unregister-model/{{ model }}" method="post" style="display: inline;">
-                                <button type="submit" class="unregister-button">Unregister</button>
+                                <button 
+                                    type="submit" 
+                                    class="unregister-button" 
+                                    {% if model not in registered_models %}disabled{% endif %}>
+                                    Unregister
+                                </button>
                             </form>
                             <form action="/delete-model/{{ model }}" method="post" style="display: inline;">
                                 <button type="submit">Delete</button>
