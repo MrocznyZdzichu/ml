@@ -61,7 +61,17 @@ async def register_dataset_form(
         response = requests.post(f"{METADATA_SERVICE_URL}/datasets/register", data=data)
         response.raise_for_status()
         message = f"Dataset '{name}' registered successfully!"
-    except requests.RequestException as e:
+    except requests.exceptions.HTTPError as http_err:
+        if response.content:
+            try:
+                error_details = response.json()
+                print(error_details)
+                message = f"Error: {error_details.get('detail')}"
+            except ValueError:
+                message = f"HTTP error occurred: {response.text}"
+        else:
+            message = f"HTTP error occurred: {http_err}"
+    except Exception as e:
         message = f"Error: {str(e)}"
     
     return templates.TemplateResponse("index.html", {"request": request, "message": message})

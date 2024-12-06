@@ -84,7 +84,9 @@ async def register_dataset_endpoint(
         MetadataManager.add_tab_details(dbm, name, columns_data)
         return {"message": f"Dataset '{name}' registered successfully!"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+        print('ERROR:\t', str(e))
+        raise HTTPException(status_code=500, detail=str(e)
+    )
 
 ################### models ###################
 @app.get("/models/get_registered_models")
