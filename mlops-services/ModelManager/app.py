@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from MLOps import ModelManager
 from MLOps import DBManager
 
-logging.basicConfig(level=logging.ERROR)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
@@ -93,21 +93,21 @@ async def api_unregister_model(model_name: str):
 
 @app.post("/{model_name}/generate-batch-scoring")
 async def api_generate_batch_scoring(model_name: str):
+    logger.info(f"Generating batch score code for {model_name}")
+    reg_models = await registered_models()
+    
+    if model_name not in reg_models:
+        raise HTTPException(status_code=404, detail="Requested model is not registered")
     try:
         model = ModelManager.load_model(model_name, in_docker=IN_DOCKER)
     except:
         logger.error("Error loading model", exc_info=True)
-        raise HTTPException(
-            status_code = 500,
-            detail="Requested model not found / not loaded"
-        )
+        raise HTTPException(status_code = 500, detail="Requested model not loaded")
     
     try:
         model.generate_batch_score_code()
     except:
         logger.error("Error generating batch scoring code", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail="Failure during generating a score code"
-        )
+        raise HTTPException(status_code=500, detail="Failure during generating a score code")
+    
     return {"message": "Successfully generated a batch scoring code"}
