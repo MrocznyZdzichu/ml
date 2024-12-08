@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from .CodeGenerator import CodeGenerator
-_model_store_dir = 'ModelsRepository'
+_model_store_dir = 'model-repository'
 
 
 class BatchScoreCodeGenerator(CodeGenerator):
