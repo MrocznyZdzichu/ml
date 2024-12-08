@@ -106,23 +106,21 @@ async def api_unregister_model(model_name: str):
         raise HTTPException(status_code=500, detail=f"Error retrieving model metadata: {e}")
     
 
-@app.post("/{model_name}/generate-batch-scoring")
-async def api_generate_batch_scoring(model_name: str):
+@app.post("/{model_name}/generate-batch-scoring", response_class=HTMLResponse)
+async def api_generate_batch_scoring(request: Request, model_name: str):
     logger.info(f"Generating batch score code for {model_name}")
     reg_models = await registered_models()
-    
+
     if model_name not in reg_models:
-        raise HTTPException(status_code=404, detail="Requested model is not registered")
+        message = "Requested model is not registered."
+        return templates.TemplateResponse("index.html",{"request": request, "registered_models": reg_models, "message": message},)
+    
     try:
         model = ModelManager.load_model(model_name, in_docker=IN_DOCKER)
-    except:
-        logger.error("Error loading model", exc_info=True)
-        raise HTTPException(status_code = 500, detail="Requested model not loaded")
-    
-    try:
         model.generate_batch_score_code()
-    except:
-        logger.error("Error generating batch scoring code", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failure during generating a score code")
-    
-    return {"message": "Successfully generated a batch scoring code"}
+        message = f"Successfully generated batch scoring code for {model_name}."
+    except Exception as e:
+        logger.error("Error during batch scoring code generation", exc_info=True)
+        message = f"Error generating batch scoring code for {model_name}: {e}"
+
+    return templates.TemplateResponse("index.html",{"request": request, "registered_models": reg_models, "message": message},)
