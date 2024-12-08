@@ -44,5 +44,5 @@ def register_dataset(dbm, name, type, location, has_header, is_structured=None, 
         'description': description,
         'is_active' : 1
     }
-
+    print('DEBUG:\t\tInserting ...')
     dbm.execute_insert(insert_query, data_dict)
