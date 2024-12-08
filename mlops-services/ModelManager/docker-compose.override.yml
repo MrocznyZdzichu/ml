@@ -5,3 +5,5 @@ services:
       dockerfile: 'mlops-services/ModelManager/Dockerfile'
     ports:
       - "5003:5003"
+    volumes:
+      - ..\model-repository:/app/model-repository
