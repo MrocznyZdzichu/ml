@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Form, Request, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from typing import List, Optional
 
@@ -21,10 +21,7 @@ PHYSICAL_STORAGE_DIR = "/app/data-repository'"
 
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    """
-    Main page displaying the form for dataset registration.
-    """
+async def read_root(request: Request, message: Optional[str] = None):
     try:
         response = requests.get(f"{DATA_REPOSITORY_URL}/files")
         response.raise_for_status()
@@ -32,7 +29,8 @@ async def read_root(request: Request):
     except requests.RequestException as e:
         raise HTTPException(status_code=503, detail="Unable to fetch files from data repository")
 
-    return templates.TemplateResponse("index.html", {"request": request, "files": files})
+    return templates.TemplateResponse("index.html", {"request": request, "files": files, "message": message})
+
 
 @app.post("/register_dataset")
 async def register_dataset_form(
@@ -74,4 +72,4 @@ async def register_dataset_form(
     except Exception as e:
         message = f"Error: {str(e)}"
     
-    return templates.TemplateResponse("index.html", {"request": request, "message": message})
+    return RedirectResponse(url=f"/?message={message}", status_code=303)
