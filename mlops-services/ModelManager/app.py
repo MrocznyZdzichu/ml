@@ -1,8 +1,10 @@
 import os
 import requests
 import logging
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.templating import Jinja2Templates
 
 from MLOps import ModelManager
 from MLOps import DBManager
@@ -18,11 +20,24 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+templates = Jinja2Templates(directory="templates")
 
 IN_DOCKER = os.getenv('IN_DOCKER') == 'Yes'
 dbm = DBManager(dev_db=True, in_docker=IN_DOCKER)
 
 METADATA_SERVER_URL = "http://mlops-metadata-server-1:4044"
+
+@app.get("/", response_class=HTMLResponse)
+async def get_homepage(request: Request):
+    reg = await registered_models()
+    return templates.TemplateResponse(
+        "index.html", 
+        {
+            "request": request,
+            "registered_models": reg,
+            "message": "", 
+        }
+    )
 
 
 @app.get("/registered-models")
