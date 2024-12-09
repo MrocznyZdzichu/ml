@@ -98,6 +98,35 @@
             justify-content: center; 
             gap: 10px; 
         }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgb(30, 40, 50);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+        .modal h2 {
+            margin-top: 0;
+        }
+        .modal button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .modal button:hover {
+            background-color: #2980b9;
+        }
     </style>        
 </head>
 <body>
@@ -124,17 +153,54 @@
                             </form>
                         </div>
                         <div class="file-upload" style="display: inline;">
-                            <form action="/{{ model }}/execute-batch-scoring" method="post" enctype="multipart/form-data">
-                                <input type="file" name="file" id="file-{{ loop.index }}" onchange="this.form.submit()">
+                            <form id="fileUploadForm-{{ loop.index }}" action="/{{ model }}/execute-batch-scoring" method="post" enctype="multipart/form-data" style="display: inline;">
+                                <input type="file" name="file" id="file-{{ loop.index }}" onchange="showModal('{{ loop.index }}')">
                                 <label for="file-{{ loop.index }}">Execute Batch Scoring</label>
                             </form>
                         </div>
-                        </div>                        
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
+    <div id="csvModal" class="modal">
+        <h2>Does the CSV file contain headers?</h2>
+        <button id="csvYesButton" onclick="submitForm(true)">Yes</button>
+        <button id="csvNoButton" onclick="submitForm(false)">No</button>
+    </div>
+
+    <script>
+        function showModal(index) {
+            const modal = document.getElementById('csvModal');
+            modal.style.display = 'block';
+            window.currentFormIndex = index;
+        }
+
+        function submitForm(hasHeaders) {
+            const form = document.getElementById(`fileUploadForm-${window.currentFormIndex}`);
+            const modelName = form.action.split('/')[1];
+            const fileInput = form.querySelector('input[type="file"]');
+            const file = fileInput.files[0];
+
+            let actionUrl = form.action.split('?')[0]; 
+            actionUrl = `${actionUrl}?has_headers=${hasHeaders ? 'true' : 'false'}`;
+
+            form.action = actionUrl;
+
+            form.submit();
+
+            const modal = document.getElementById('csvModal');
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('csvModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
 </body>
 </html>

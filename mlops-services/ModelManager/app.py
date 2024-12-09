@@ -129,8 +129,10 @@ async def api_generate_batch_scoring(request: Request, model_name: str):
 
 
 @app.post("/{model_name}/execute-batch-scoring")
-async def api_execute_batch_scoring(request: Request, model_name: str, file: UploadFile = File(...)):
+async def api_execute_batch_scoring(request: Request, model_name: str, has_headers: bool, file: UploadFile = File(...)):
     logger.info(f'Executing a batch scoring for {model_name}')
+    logger.info(f'Input batch file contains headers? {has_headers}')
+
     reg_models = await registered_models()
 
     if model_name not in reg_models:
