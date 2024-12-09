@@ -17,6 +17,7 @@ import os
 import pandas as pd
 import joblib
 import sys
+from datetime import datetime
 
 os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 if not os.path.exists('score-results'):
@@ -29,8 +30,9 @@ os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 sys.path.insert(0, os.getcwd())  # Add the new working directory to sys.path
 
 # Define paths
-MODEL_PATH = os.path.join('{_model_store_dir}', '{self.model_name}', '{self.model_name}_model_object.joblib')
-OUTPUT_PATH = os.path.join('{_model_store_dir}', '{self.model_name}', 'score-results', 'batch', f'batch_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv')
+OUTPUT_FILE = 'batch_' + datetime.now().strftime("%Y-%m-%d_%H-%M-%S.csv")
+MODEL_PATH  = os.path.join('{_model_store_dir}', '{self.model_name}', '{self.model_name}_model_object.joblib')
+OUTPUT_PATH = os.path.join('{_model_store_dir}', '{self.model_name}', 'score-results', 'batch', OUTPUT_FILE)
 
 # Required features
 REQUIRED_FEATURES = {self.required_features}
