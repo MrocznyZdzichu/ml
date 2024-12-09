@@ -33,23 +33,27 @@
             margin-top: 20px;
         }
         th, td {
-            padding: 10px;
+            padding: 7px;
             border: 1px solid #555;
             text-align: center;
         }
         button {
-            background-color: #e74c3c;
+            background-color: #3498db;
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 8px 15px; 
             cursor: pointer;
-            border-radius: 4px;
+            width: auto; 
+            font-size: 16px;
+            margin-top: 0px;
         }
         button:hover {
-            background-color: #c0392b;
+            background-color: #2980b9;
         }
         .file-upload {
             display: inline-block;
+            margin-top: 0px;
+            padding: 8px 15px; 
         }
         .file-upload input[type="file"] {
             display: none;
@@ -57,14 +61,44 @@
         .file-upload label {
             background-color: #3498db;
             color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
+            padding: 8px 15px; 
             cursor: pointer;
+            display: inline-block;
+            font-size: 16px;
+            margin-top: 0px;
         }
         .file-upload label:hover {
             background-color: #2980b9;
         }
-    </style>
+        .file-upload form {
+            display: inline-block;
+        }
+        .generate-score {
+            display: inline-block;
+            margin-top: 0px;
+            padding: 8px 15px; 
+        }
+        .generate-score label {
+            background-color: #3498db;
+            color: white;
+            padding: 8px 15px; 
+            cursor: pointer;
+            display: inline-block;
+            font-size: 16px;
+            margin-top: 0px;
+        }
+        .generate-score label:hover {
+            background-color: #2980b9;
+        }
+        .generate-score form {
+            display: inline-block;
+        }
+        .actions {
+            display: flex;
+            justify-content: center; 
+            gap: 10px; 
+        }
+    </style>        
 </head>
 <body>
     <div class="container">
@@ -84,15 +118,18 @@
                 <tr>
                     <td>{{ model }}</td>
                     <td>
-                        <form action="/{{ model }}/generate-batch-scoring" method="post" style="display: inline;">
-                            <button type="submit">Generate Batch Scoring</button>
-                        </form>
+                        <div class="generate-score" style="display: inline;">
+                            <form action="/{{ model }}/generate-batch-scoring" method="post" style="display: inline;">
+                                <button type="submit">Generate Batch Scoring</button>
+                            </form>
+                        </div>
                         <div class="file-upload" style="display: inline;">
                             <form action="/{{ model }}/execute-batch-scoring" method="post" enctype="multipart/form-data">
                                 <input type="file" name="file" id="file-{{ loop.index }}" onchange="this.form.submit()">
                                 <label for="file-{{ loop.index }}">Execute Batch Scoring</label>
                             </form>
                         </div>
+                        </div>                        
                     </td>
                 </tr>
                 {% endfor %}
