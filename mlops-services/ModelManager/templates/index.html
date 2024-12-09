@@ -48,6 +48,22 @@
         button:hover {
             background-color: #c0392b;
         }
+        .file-upload {
+            display: inline-block;
+        }
+        .file-upload input[type="file"] {
+            display: none;
+        }
+        .file-upload label {
+            background-color: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .file-upload label:hover {
+            background-color: #2980b9;
+        }
     </style>
 </head>
 <body>
@@ -71,6 +87,12 @@
                         <form action="/{{ model }}/generate-batch-scoring" method="post" style="display: inline;">
                             <button type="submit">Generate Batch Scoring</button>
                         </form>
+                        <div class="file-upload" style="display: inline;">
+                            <form action="/{{ model }}/execute-batch-scoring" method="post" enctype="multipart/form-data">
+                                <input type="file" name="file" id="file-{{ loop.index }}" onchange="this.form.submit()">
+                                <label for="file-{{ loop.index }}">Execute Batch Scoring</label>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}

@@ -1,8 +1,10 @@
 import os
 import requests
 import logging
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
+import subprocess
+from datetime import datetime
+from fastapi import FastAPI, HTTPException, Request, File, UploadFile
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 
@@ -124,3 +126,39 @@ async def api_generate_batch_scoring(request: Request, model_name: str):
         message = f"Error generating batch scoring code for {model_name}: {e}"
 
     return templates.TemplateResponse("index.html",{"request": request, "registered_models": reg_models, "message": message},)
+
+
+@app.post("/{model_name}/execute-batch-scoring")
+async def api_execute_batch_scoring(request: Request, model_name: str, file: UploadFile = File(...)):
+    logger.info(f'Executing a batch scoring for {model_name}')
+    reg_models = await registered_models()
+
+    if model_name not in reg_models:
+        message = "Requested model is not registered."
+        return templates.TemplateResponse("index.html",{"registered_models": reg_models, "message": message},)
+    
+    base_path        = os.path.join('model-repository', model_name)
+    batch_inputs_dir = os.path.join(base_path, 'inputs', 'batch')
+    scorecode_path   = os.path.join(base_path, 'score_batch.py')
+
+    os.makedirs(batch_inputs_dir, exist_ok=True)
+
+    input_file_path = os.path.join(batch_inputs_dir, datetime.now().strftime("%Y-%m-%d_%H-%M-%S_")+file.filename)
+    with open(input_file_path, "wb") as f:
+        f.write(file.file.read())
+
+    if not os.path.exists(scorecode_path):
+        logger.error('Scoring file not found')
+        raise HTTPException(status_code=404, detail=f"Scoring script not found for model {model_name}")
+    
+    command = ["python", scorecode_path, input_file_path]
+    result = subprocess.run(command, capture_output=True, text=True)
+
+    if result.returncode != 0:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error executing scoring script: {result.stderr}"
+        )
+    
+    message = f"Batch scoring executed successfully for {model_name}.\nOutput: {result.stdout}"
+    return templates.TemplateResponse("index.html", {"request": request, "registered_models": reg_models, "message": message})
