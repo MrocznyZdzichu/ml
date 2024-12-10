@@ -141,3 +141,12 @@ async def api_get_model_metadata(model_name: str):
 async def api_unregister_model(model_name: str):
     model_id = MetadataManager.get_model_id(dbm, model_name)
     MetadataManager.unregister_model(dbm, model_id)
+
+
+@app.post("/models/{model_name}/batchscores/log_generation")
+async def api_log_batchscore_generation(model_name: str, status: str, details: str = ''):
+    try:
+        MetadataManager.log_batchscore_generation(dbm, model_name, status, details)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"detail" : "Generation of batchscore code logged successfully."}

@@ -10,6 +10,7 @@ from fastapi.templating import Jinja2Templates
 
 from MLOps import ModelManager
 from MLOps import DBManager
+import addons
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -112,19 +113,39 @@ async def api_unregister_model(model_name: str):
 async def api_generate_batch_scoring(request: Request, model_name: str):
     logger.info(f"Generating batch score code for {model_name}")
     reg_models = await registered_models()
+    gen_status  = 'Success'
+    gen_details = 'Batchscore source created properly.'
 
+    # Is model registered
     if model_name not in reg_models:
         message = "Requested model is not registered."
-        return templates.TemplateResponse("index.html",{"request": request, "registered_models": reg_models, "message": message},)
+        return templates.TemplateResponse("index.html",{"request": request, "registered_models": reg_models, "message": message}, status_code=404)
     
+    # Successful generaton method
     try:
         model = ModelManager.load_model(model_name, in_docker=IN_DOCKER)
         model.generate_batch_score_code()
-        message = f"Successfully generated batch scoring code for {model_name}."
     except Exception as e:
         logger.error("Error during batch scoring code generation", exc_info=True)
         message = f"Error generating batch scoring code for {model_name}: {e}"
 
+        gen_status  = 'Failure'
+        gen_details = 'Generating of the batchscore failed.'
+        addons.log_batchscore_generation(METADATA_SERVER_URL, model_name, gen_status, gen_details)
+
+        return templates.TemplateResponse("index.html",{"request": request, "registered_models": reg_models, "message": message}, status_code=500)
+        
+    # Do scorefile really exist
+    was_batchfile_created = addons.check_batchfile_created(model_name)
+    if not was_batchfile_created:
+        gen_status  = 'Failure'
+        gen_details = 'Generator method did not fail but batchscore does not exist.'
+        addons.log_batchscore_generation(METADATA_SERVER_URL, model_name, gen_status, gen_details)
+        return templates.TemplateResponse("index.html",{"request": request, "registered_models": reg_models, "message": gen_details}, status_code=500)
+    else:
+        message = f"Successfully generated batch scoring code for {model_name}."
+        addons.log_batchscore_generation(METADATA_SERVER_URL, model_name, gen_status, gen_details)
+        
     return templates.TemplateResponse("index.html",{"request": request, "registered_models": reg_models, "message": message},)
 
 
