@@ -153,7 +153,11 @@ async def api_execute_batch_scoring(request: Request, model_name: str, has_heade
         logger.error('Scoring file not found')
         raise HTTPException(status_code=404, detail=f"Scoring script not found for model {model_name}")
     
-    command = ["python", scorecode_path, input_file_path]
+    if has_headers:
+        command = ["python", scorecode_path, input_file_path]
+    else:
+        command = ["python", scorecode_path, input_file_path, '--no-headers']
+
     result = subprocess.run(command, capture_output=True, text=True)
 
     if result.returncode != 0:
