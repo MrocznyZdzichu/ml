@@ -161,10 +161,7 @@ async def api_execute_batch_scoring(request: Request, model_name: str, has_heade
     result = subprocess.run(command, capture_output=True, text=True)
 
     if result.returncode != 0:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error executing scoring script: {result.stderr}"
-        )
+        return templates.TemplateResponse("index.html", {"request": request, "registered_models": reg_models, "message": result.stderr}, status_code=500)
     
     message = f"Batch scoring executed successfully for {model_name}.\nOutput: {result.stdout}"
     return templates.TemplateResponse("index.html", {"request": request, "registered_models": reg_models, "message": message})
