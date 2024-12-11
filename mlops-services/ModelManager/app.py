@@ -37,8 +37,7 @@ async def get_homepage(request: Request):
         "index.html", 
         {
             "request": request,
-            "registered_models": reg,
-            "message": "", 
+            "registered_models": reg
         }
     )
 

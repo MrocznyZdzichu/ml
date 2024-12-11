@@ -6,245 +6,174 @@
     <title>Model Manager</title>
     <style>
         body {
-            background-color: rgb(20, 30, 40);
-            color: white;
-            font-family: Arial, sans-serif;
             display: flex;
-            justify-content: center;
-            align-items: center;
             height: 100vh;
             margin: 0;
-        }
-        .container {
-            text-align: center;
-            width: 50%;
-        }
-        h1 {
-            margin-bottom: 20px;
-        }
-        .message {
-            color: #2ecc71;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 7px;
-            border: 1px solid #555;
-            text-align: center;
-        }
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 8px 15px; 
-            cursor: pointer;
-            width: auto; 
-            font-size: 16px;
-            margin-top: 0px;
-        }
-        button:hover {
-            background-color: #2980b9;
-        }
-        .file-upload {
-            display: inline-block;
-            margin-top: 0px;
-            padding: 8px 15px; 
-        }
-        .file-upload input[type="file"] {
-            display: none;
-        }
-        .file-upload label {
-            background-color: #3498db;
-            color: white;
-            padding: 8px 15px; 
-            cursor: pointer;
-            display: inline-block;
-            font-size: 16px;
-            margin-top: 0px;
-        }
-        .file-upload label:hover {
-            background-color: #2980b9;
-        }
-        .file-upload form {
-            display: inline-block;
-        }
-        .generate-score {
-            display: inline-block;
-            margin-top: 0px;
-            padding: 8px 15px; 
-        }
-        .generate-score label {
-            background-color: #3498db;
-            color: white;
-            padding: 8px 15px; 
-            cursor: pointer;
-            display: inline-block;
-            font-size: 16px;
-            margin-top: 0px;
-        }
-        .generate-score label:hover {
-            background-color: #2980b9;
-        }
-        .generate-score form {
-            display: inline-block;
-        }
-        .actions {
-            display: flex;
-            justify-content: center; 
-            gap: 10px; 
+            font-family: Arial, sans-serif;
         }
 
-        /* Modal styles */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgb(30, 40, 50);
+        /* Left Sidebar (Model list) */
+        .sidebar {
+            background-color: #2c3e50; /* Dark blue */
             color: white;
+            width: 250px;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
         }
-        .modal h2 {
+
+        .sidebar h2 {
             margin-top: 0;
         }
-        .modal button {
-            background-color: #3498db;
-            color: white;
-            border: none;
+
+        .model-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .model-list li {
+            margin: 10px 0;
+            cursor: pointer;
+        }
+
+        .model-list li:hover {
+            background-color: #1a2b36; /* Slightly darker blue on hover */
+        }
+
+        /* Right Content Area (Information window) */
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            background-color: #f4f4f4;
+            box-sizing: border-box;
+        }
+
+        .placeholder {
+            font-size: 24px;
+            color: #333;
+        }
+
+        /* Tabs Styling */
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #ccc;
+        }
+
+        .tab {
             padding: 10px 20px;
             cursor: pointer;
-            margin-top: 10px;
+            background-color: #f4f4f4;
+            border: 1px solid #ccc;
+            border-radius: 4px 4px 0 0;
+            margin-right: 10px;
+            transition: background-color 0.3s;
         }
-        .modal button:hover {
-            background-color: #2980b9;
+
+        .tab:hover {
+            background-color: #ddd;
         }
-    </style>        
+
+        .tab.active {
+            background-color: #2c3e50;
+            color: white;
+            border-color: #2c3e50;
+        }
+
+        /* Tab content */
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border-top: 2px solid #ccc;
+            background-color: white;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Model Manager</h1>
-        {% if message %}
-        <div class="message">{{ message }}</div>
-        {% endif %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Model Name</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for model in registered_models %}
-                <tr>
-                    <td>{{ model }}</td>
-                    <td>
-                        <div class="generate-score" style="display: inline;">
-                            <form id="generateScoreForm-{{ loop.index }}" action="/{{ model }}/generate-batch-scoring" method="post" style="display: inline;">
-                                <button type="button" onclick="checkAndGenerate('{{ model }}', '{{ loop.index }}')">Generate Batch Scoring</button>
-                            </form>
-                        </div>
-                        <div class="file-upload" style="display: inline;">
-                            <form id="fileUploadForm-{{ loop.index }}" action="/{{ model }}/execute-batch-scoring" method="post" enctype="multipart/form-data" style="display: inline;">
-                                <input type="file" name="file" id="file-{{ loop.index }}" onchange="showModal('{{ loop.index }}')">
-                                <label for="file-{{ loop.index }}">Execute Batch Scoring</label>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+    <div class="sidebar">
+        <h2>Models</h2>
+        <ul class="model-list">
+            {% for model in registered_models %}
+            <li onclick="loadModelMetadata('{{ model }}')">{{ model }}</li>
+            {% endfor %}
+        </ul>
     </div>
 
-    <div id="csvModal" class="modal">
-        <h2>Does the CSV file contain headers?</h2>
-        <button id="csvYesButton" onclick="submitForm(true)">Yes</button>
-        <button id="csvNoButton" onclick="submitForm(false)">No</button>
-    </div>
+    <div class="content">
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('general')">General Information</div>
+            <div class="tab" onclick="switchTab('batch')">Batch Scoring</div>
+        </div>
 
-    <div id="replaceModal" class="modal">
-        <h2>Batch scoring code already exists. Replace?</h2>
-        <button id="replaceYesButton" onclick="replaceBatchScore(true)">Yes</button>
-        <button id="replaceNoButton" onclick="replaceBatchScore(false)">No</button>
+        <!-- Tab Content -->
+        <div class="tab-content active" id="general">
+            <div class="placeholder">General Information about the model.</div>
+            <div id="model-details">
+                <!-- Model metadata will be injected here -->
+            </div>
+        </div>
+        <div class="tab-content" id="batch">
+            <div class="placeholder">Batch Scoring Information</div>
+            <p>This section provides details about the batch scoring process, such as input file format, scoring logic, and how to execute batch jobs.</p>
+        </div>
     </div>
 
     <script>
-        function showModal(index) {
-            const modal = document.getElementById('csvModal');
-            modal.style.display = 'block';
-            window.currentFormIndex = index;
+        function switchTab(tabName) {
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            const selectedTab = document.getElementById(tabName);
+            selectedTab.classList.add('active');
+
+            const activeTab = document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`);
+            activeTab.classList.add('active');
         }
 
-        function submitForm(hasHeaders) {
-            const form = document.getElementById(`fileUploadForm-${window.currentFormIndex}`);
-            const modelName = form.action.split('/')[1];
-            const fileInput = form.querySelector('input[type="file"]');
-            const file = fileInput.files[0];
+        function loadModelMetadata(modelName) {
+            fetch(`/${modelName}/model-metadata`)
+                .then(response => response.json())
+                .then(data => {
+                    const modelDetails = data.model_info;
+                    const dataroles = data.model_dataroles;
 
-            let actionUrl = form.action.split('?')[0]; 
-            actionUrl = `${actionUrl}?has_headers=${hasHeaders ? 'true' : 'false'}`;
+                    const modelDetailsHTML = `
+                        <h3>Model: ${modelDetails.model_name}</h3>
+                        <p><strong>Estimator Class:</strong> ${modelDetails.estimator_class}</p>
+                        <p><strong>Dataset Name:</strong> ${modelDetails.dataset_name}</p>
+                        <p><strong>Created At:</strong> ${new Date(modelDetails.created_at).toLocaleString()}</p>
+                        <h4>Estimator Parameters:</h4>
+                        <pre>${JSON.stringify(modelDetails.estimator_parameters, null, 2)}</pre>
+                    `;
 
-            form.action = actionUrl;
+                    const datarolesHTML = dataroles.map(role => `
+                        <p><strong>${role.datarole}:</strong> ${role.column_name} (${role.datatype}, ${role.datalevel})</p>
+                    `).join('');
 
-            form.submit();
-
-            const modal = document.getElementById('csvModal');
-            modal.style.display = 'none';
-        }
-
-        window.onclick = function(event) {
-            const modal = document.getElementById('csvModal');
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
-        }
-    </script>
-    <script>
-        async function checkAndGenerate(modelName, formIndex) {
-            const response = await fetch(`/${modelName}/generate-batch-scoring`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ replace: false })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                if (data.requires_confirmation) {
-                    const modal = document.getElementById('replaceModal');
-                    modal.style.display = 'block';
-                    window.currentModel = modelName;
-                    window.currentFormIndex = formIndex;
-                } else {
-                    document.getElementById(`generateScoreForm-${formIndex}`).submit();
-                }
-            } else {
-                console.error('Error generating batch scoring code');
-            }
-        }
-        function replaceBatchScore(replace) {
-            const form = document.getElementById(`generateScoreForm-${window.currentFormIndex}`);
-            form.action = `/${window.currentModel}/generate-batch-scoring?replace=${replace}`;
-            form.submit();
-
-            const modal = document.getElementById('replaceModal');
-            modal.style.display = 'none';
-        }
-
-        window.onclick = function(event) {
-            const modal = document.getElementById('replaceModal');
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
+                    document.getElementById('model-details').innerHTML = `
+                        <div>
+                            ${modelDetailsHTML}
+                            <h4>Data Roles:</h4>
+                            ${datarolesHTML}
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    document.getElementById('model-details').innerHTML = `<p>Error loading model metadata: ${error}</p>`;
+                });
         }
     </script>
+
 </body>
 </html>
