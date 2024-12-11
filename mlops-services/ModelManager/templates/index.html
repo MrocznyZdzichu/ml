@@ -150,7 +150,7 @@
             <div class="tab active" onclick="switchTab('general')">General Information</div>
             <div class="tab" onclick="switchTab('batch')">Batch Scoring</div>
         </div>
-
+    
         <!-- Tab Content -->
         <div class="tab-content active" id="general">
             <div class="placeholder">General Information about the model.</div>
@@ -158,10 +158,14 @@
                 <!-- Model metadata will be injected here -->
             </div>
         </div>
-        <div class="tab-content" id="batch">
+    
+        <!-- Batch Scoring Content -->
+        <div class="tab-content" id="batch" style="display: none;">
             <div id="batch-score-info">
                 <p>Loading batch scoring information...</p>
             </div>
+            <p style="margin-bottom:1cm;"></p>
+    
             <div id="batch-score-actions">
                 <label>
                     <input type="checkbox" id="replace-checkbox">
@@ -169,33 +173,52 @@
                 </label>
                 <button onclick="generateBatchScoring()">Generate Batch Scoring Code</button>
             </div>
+            <p style="margin-bottom:1cm;"></p>
+    
+            <div id="execute-scoring" style="display: none;">
+                <h3>Execute Batch Scoring</h3>
+                <form id="batch-scoring-form">
+                    <input type="file" id="file-upload" />
+                    <label>
+                        <input type="checkbox" id="has-headers" />
+                        Has headers
+                    </label>
+                    <button type="button" onclick="executeBatchScoring()">Execute Scoring</button>
+                </form>
+            </div>
         </div>
-        
-        
-    </div>
+    </div>    
 
     <script>
-        function switchTab(tabName) {
-            const contents = document.querySelectorAll('.tab-content');
-            contents.forEach(content => content.classList.remove('active'));
+        function getModelName() {
+            const activeModelItem = document.querySelector('.model-list li.active');
+            return activeModelItem ? activeModelItem.textContent.trim() : '';
+        }
 
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach(tab => tab.classList.remove('active'));
+        function switchTab(tab) {
+            const generalTab = document.getElementById('general');
+            const batchTab = document.getElementById('batch');
+            const generalButton = document.querySelector('.tab:nth-child(1)');
+            const batchButton = document.querySelector('.tab:nth-child(2)');
 
-            const selectedTab = document.getElementById(tabName);
-            selectedTab.classList.add('active');
+            // Ukryj wszystkie sekcje
+            generalTab.style.display = 'none';
+            batchTab.style.display = 'none';
 
-            const activeTab = document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`);
-            activeTab.classList.add('active');
+            // Usuń klasę "active" z wszystkich przycisków
+            generalButton.classList.remove('active');
+            batchButton.classList.remove('active');
 
-            // Load batch scoring info when the "Batch" tab is selected
-            if (tabName === 'batch') {
-                const modelName = document.querySelector('.model-list li.active').textContent.trim();
-                if (modelName) {
-                    loadBatchScoreInfo(modelName);
-                }
+            // Pokaż aktywną zakładkę i dodaj klasę "active" do odpowiedniego przycisku
+            if (tab === 'general') {
+                generalTab.style.display = 'block';
+                generalButton.classList.add('active');
+            } else if (tab === 'batch') {
+                batchTab.style.display = 'block';
+                batchButton.classList.add('active');
             }
         }
+
         function loadModelMetadata(modelName) {
             // Highlight the clicked model
             const modelItems = document.querySelectorAll('.model-list li');
@@ -270,15 +293,19 @@
             // Fetch and update content for the "Batch Scoring" tab
             loadBatchScoreInfo(modelName);
         }
+
         function loadBatchScoreInfo(modelName) {
             const batchInfoDiv = document.getElementById('batch-score-info');
+            const executeScoringDiv = document.getElementById('execute-scoring');
 
             // Fetch if the score file exists
             fetch(`/${modelName}/has-batch-scorecode`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.result === 1) {
-                        // If score file exists, fetch its modification time
+                        // If score file exists, display Execute Scoring form
+                        executeScoringDiv.style.display = 'block';
+
                         fetch(`/${modelName}/batchscore-file-modtime`)
                             .then(response => response.json())
                             .then(modtimeData => {
@@ -292,6 +319,7 @@
                                 batchInfoDiv.innerHTML = `<p>Error fetching batch score file modtime: ${error}</p>`;
                             });
                     } else {
+                        executeScoringDiv.style.display = 'none';
                         batchInfoDiv.innerHTML = `
                             <h3>Batch Scoring File Information</h3>
                             <p><strong>File score_batch.py Exists:</strong> No</p>
@@ -304,35 +332,55 @@
         }
 
         function generateBatchScoring() {
-            const replace = document.getElementById('replace-checkbox').checked;
-            const modelName = document.querySelector('.model-list li.active')?.textContent.trim();
+            const replace = document.getElementById('replace-checkbox').checked;  
+            const modelName = getModelName();  
+            
+            const url = `/${encodeURIComponent(modelName)}/generate-batch-scoring?replace=${replace}`;
 
-            if (!modelName) {
-                alert("Please select a model first.");
+            fetch(url, {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.detail) {
+                    alert(data.detail);
+                }
+            })
+            .catch(error => {
+                console.error('Error generating batch scoring:', error);
+                alert('An unexpected error occurred. Please try again.');
+            });
+        }
+
+        function executeBatchScoring() {
+            const modelName = document.querySelector('.model-list li.active').textContent.trim();
+            const fileInput = document.getElementById('file-upload');
+            const hasHeaders = document.getElementById('has-headers').checked;
+
+            if (!fileInput.files.length) {
+                alert('Please upload a file before executing scoring.');
                 return;
             }
 
-            console.log(`Sending request to: /${modelName}/generate-batch-scoring?replace=${replace}`);
-            
-            fetch(`/${modelName}/generate-batch-scoring?replace=${replace}`, {
-                method: "POST",
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('has_headers', hasHeaders.toString());  // Przekazujemy has_headers jako string ("true"/"false")
+
+            fetch(`/${modelName}/execute-batch-scoring`, {
+                method: 'POST',
+                body: formData,
             })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(data => {
-                        throw new Error(data.detail || "Unexpected error occurred.");
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                alert(data.detail); // Wyświetlenie komunikatu z odpowiedzi
-                loadBatchScoreInfo(modelName); // Odśwież informacje o batch scoring
-            })
-            .catch(error => {
-                console.error("Error generating batch scoring code:", error.message);
-                alert(`Error: ${error.message}`);
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.detail) {
+                        alert(data.detail);
+                    } else {
+                        alert('Unexpected response format');
+                    }
+                })
+                .catch(error => {
+                    alert(`An unexpected error occurred: ${error}`);
+                });
         }
     </script>
 </body>

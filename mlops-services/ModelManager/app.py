@@ -151,14 +151,10 @@ async def api_generate_batch_scoring(request: Request, model_name: str, replace:
 
 @app.post("/{model_name}/execute-batch-scoring")
 async def api_execute_batch_scoring(request: Request, model_name: str, has_headers: bool, file: UploadFile = File(...)):
-    logger.info(f'Executing a batch scoring for {model_name}')
-    logger.info(f'Input batch file contains headers? {has_headers}')
-
     reg_models = await registered_models()
 
     if model_name not in reg_models:
-        message = "Requested model is not registered."
-        return templates.TemplateResponse("index.html",{"registered_models": reg_models, "message": message},)
+        return JSONResponse({"detail" : f"Model {model_name} not found."}, status_code=404)
     
     base_path        = os.path.join('model-repository', model_name)
     batch_inputs_dir = os.path.join(base_path, 'inputs', 'batch')
@@ -170,8 +166,7 @@ async def api_execute_batch_scoring(request: Request, model_name: str, has_heade
     with open(input_file_path, "wb") as f:
         f.write(file.file.read())
 
-    if not os.path.exists(scorecode_path):
-        logger.error('Scoring file not found')
+    if not addons.check_batchfile_created(model_name):
         raise HTTPException(status_code=404, detail=f"Scoring script not found for model {model_name}")
     
     if has_headers:
@@ -182,7 +177,6 @@ async def api_execute_batch_scoring(request: Request, model_name: str, has_heade
     result = subprocess.run(command, capture_output=True, text=True)
 
     if result.returncode != 0:
-        return templates.TemplateResponse("index.html", {"request": request, "registered_models": reg_models, "message": result.stderr}, status_code=500)
+        return JSONResponse({"detail": result.stderr}, status_code=500)
     
-    message = f"Batch scoring executed successfully for {model_name}.\nOutput: {result.stdout}"
-    return templates.TemplateResponse("index.html", {"request": request, "registered_models": reg_models, "message": message})
+    return JSONResponse({"detail": f"Batch scoring executed successfully for {model_name}.\nOutput: {result.stdout}"})
