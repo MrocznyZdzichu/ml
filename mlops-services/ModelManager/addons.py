@@ -31,3 +31,20 @@ def check_batchfile_created(model_name):
     """
     path = os.path.join('model-repository', model_name, 'score_batch.py')
     return _if_file_exist(path)
+
+import os
+from datetime import datetime
+
+def check_batchfile_modtime(model_name):
+    """
+    Checks the modification time of the batch scoring file for a given model.
+
+    :param model_name: Name of the model to check for.
+    :return: Modification time as a datetime object if the file exists, None otherwise.
+    """
+    path = os.path.join('model-repository', model_name, 'score_batch.py')
+    if os.path.exists(path):
+        mod_time = os.path.getmtime(path)
+        return datetime.fromtimestamp(mod_time)
+    else:
+        return None

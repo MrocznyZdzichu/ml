@@ -41,12 +41,10 @@ async def get_homepage(request: Request):
         }
     )
 
-
 @app.get("/registered-models")
 async def registered_models():
     response = requests.get(f"{METADATA_SERVER_URL}/models/get_registered_models")
     return response.json()
-
 
 @app.post("/{model_name}/register-model")
 async def register_model(model_name: str):
@@ -73,7 +71,6 @@ async def register_model(model_name: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error registering model: {e}")
 
-
 @app.get("/{model_name}/model-metadata")
 async def model_metadata(model_name: str):
     try:
@@ -89,7 +86,6 @@ async def model_metadata(model_name: str):
             )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving model metadata: {e}")
-
 
 @app.post("/{model_name}/unregister-model")
 async def api_unregister_model(model_name: str):
@@ -107,6 +103,30 @@ async def api_unregister_model(model_name: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving model metadata: {e}")
     
+@app.get("/{model_name}/has-batch-scorecode")
+async def api_has_model_scorecode(model_name: str):
+    reg_models = await registered_models()
+    if model_name not in reg_models:
+        return JSONResponse({"detail" : f"Model {model_name} not found."}, status_code=404)
+    
+    has_code = addons.check_batchfile_created(model_name)
+    if has_code:
+        return JSONResponse({"result" : 1, "detail" : f"{model_name} has a batch scorecode."}, status_code=200)
+    else:
+        return JSONResponse({"result" : 0, "detail" : f"Batch scorecode not found for {model_name}."}, status_code=200)
+    
+@app.get("/{model_name}/batchscore-file-modtime")
+async def api_batchscode_modtime(model_name: str):
+    reg_models = await registered_models()
+    if model_name not in reg_models:
+        return JSONResponse({"detail" : f"Model {model_name} not found."}, status_code=404)
+    
+    has_code = addons.check_batchfile_created(model_name)
+    if has_code:
+        modtime = addons.check_batchfile_modtime(model_name).isoformat()
+        return JSONResponse({"result" : modtime, "detail" : f"{model_name} has a batch scorecode."}, status_code=200)
+    else:
+        return JSONResponse({"detail" : f"Getting file's modtime failed"}, status_code=500)
 
 @app.post("/{model_name}/generate-batch-scoring")
 async def api_generate_batch_scoring(request: Request, model_name: str, replace: bool = False):
@@ -115,7 +135,7 @@ async def api_generate_batch_scoring(request: Request, model_name: str, replace:
     
     if model_name not in reg_models:
         message = "Requested model is not registered."
-        return templates.TemplateResponse("index.html", {"request": request, "registered_models": reg_models, "message": message},status_code=404)
+        return JSONResponse({"detail" : f"Model {model_name} not found."}, status_code=404)
     
     scorefile_path = os.path.join('model-repository', model_name, 'score_batch.py')
     if os.path.exists(scorefile_path) and not replace:
@@ -151,7 +171,6 @@ async def api_generate_batch_scoring(request: Request, model_name: str, replace:
         {"request": request, "registered_models": reg_models, "message": message},
         status_code=200
     )
-
 
 @app.post("/{model_name}/execute-batch-scoring")
 async def api_execute_batch_scoring(request: Request, model_name: str, has_headers: bool, file: UploadFile = File(...)):

@@ -159,9 +159,11 @@
             </div>
         </div>
         <div class="tab-content" id="batch">
-            <div class="placeholder">Batch Scoring Information</div>
-            <p>This section provides details about the batch scoring process, such as input file format, scoring logic, and how to execute batch jobs.</p>
+            <div id="batch-score-info">
+                <p>Loading batch scoring information...</p>
+            </div>
         </div>
+        
     </div>
 
     <script>
@@ -177,19 +179,30 @@
 
             const activeTab = document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`);
             activeTab.classList.add('active');
-        }
 
+            // Load batch scoring info when the "Batch" tab is selected
+            if (tabName === 'batch') {
+                const modelName = document.querySelector('.model-list li.active').textContent.trim();
+                if (modelName) {
+                    loadBatchScoreInfo(modelName);
+                }
+            }
+        }
         function loadModelMetadata(modelName) {
             // Highlight the clicked model
             const modelItems = document.querySelectorAll('.model-list li');
             modelItems.forEach(item => {
-                item.classList.remove('active');  // Remove 'active' from all models
+                item.classList.remove('active'); // Remove 'active' from all models
             });
 
             const clickedItem = document.querySelector(`.model-list li[onclick="loadModelMetadata('${modelName}')"]`);
-            clickedItem.classList.add('active');  // Add 'active' to the clicked model
+            clickedItem.classList.add('active'); // Add 'active' to the clicked model
 
-            // Fetch the model metadata
+            // Reset all tabs to a loading state
+            document.getElementById('model-details').innerHTML = '<p>Loading general information...</p>';
+            document.getElementById('batch-score-info').innerHTML = '<p>Loading batch scoring information...</p>';
+
+            // Fetch and update content for the "General Information" tab
             fetch(`/${modelName}/model-metadata`)
                 .then(response => response.json())
                 .then(data => {
@@ -244,6 +257,41 @@
                 })
                 .catch(error => {
                     document.getElementById('model-details').innerHTML = `<p>Error loading model metadata: ${error}</p>`;
+                });
+
+            // Fetch and update content for the "Batch Scoring" tab
+            loadBatchScoreInfo(modelName);
+        }
+        function loadBatchScoreInfo(modelName) {
+            const batchInfoDiv = document.getElementById('batch-score-info');
+
+            // Fetch if the score file exists
+            fetch(`/${modelName}/has-batch-scorecode`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.result === 1) {
+                        // If score file exists, fetch its modification time
+                        fetch(`/${modelName}/batchscore-file-modtime`)
+                            .then(response => response.json())
+                            .then(modtimeData => {
+                                batchInfoDiv.innerHTML = `
+                                    <h3>Batch Scoring File Information</h3>
+                                    <p><strong>File score_batch.py Exists:</strong> Yes</p>
+                                    <p><strong>Last Modified:</strong> ${new Date(modtimeData.result).toLocaleString()}</p>
+                                `;
+                            })
+                            .catch(error => {
+                                batchInfoDiv.innerHTML = `<p>Error fetching batch score file modtime: ${error}</p>`;
+                            });
+                    } else {
+                        batchInfoDiv.innerHTML = `
+                            <h3>Batch Scoring File Information</h3>
+                            <p><strong>File score_batch.py Exists:</strong> No</p>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    batchInfoDiv.innerHTML = `<p>Error fetching batch score file existence: ${error}</p>`;
                 });
         }
     </script>
