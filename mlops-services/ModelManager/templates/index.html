@@ -42,6 +42,9 @@
             background-color: #1a2b36; /* Slightly darker blue on hover */
         }
 
+        .model-list li.active {
+            background-color: #1a2b36; /* Darker blue when active */
+        }
         /* Right Content Area (Information window) */
         .content {
             flex-grow: 1;
@@ -92,7 +95,42 @@
         .tab-content.active {
             display: block;
         }
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
 
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;  /* Light gray border between cells */
+        }
+
+        th {
+            font-weight: bold;
+            background-color: #f4f4f4; /* Light background for header */
+        }
+
+        tbody tr:nth-child(odd) {
+            background-color: #f9f9f9; /* Alternate row background for odd rows */
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #fff; /* Even rows with a white background */
+        }
+
+        td {
+            font-size: 14px;
+            color: #333;
+        }
+
+        /* Underline target role rows */
+        td[style="text-decoration: underline;"] {
+            text-decoration: underline;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -142,12 +180,23 @@
         }
 
         function loadModelMetadata(modelName) {
+            // Highlight the clicked model
+            const modelItems = document.querySelectorAll('.model-list li');
+            modelItems.forEach(item => {
+                item.classList.remove('active');  // Remove 'active' from all models
+            });
+
+            const clickedItem = document.querySelector(`.model-list li[onclick="loadModelMetadata('${modelName}')"]`);
+            clickedItem.classList.add('active');  // Add 'active' to the clicked model
+
+            // Fetch the model metadata
             fetch(`/${modelName}/model-metadata`)
                 .then(response => response.json())
                 .then(data => {
                     const modelDetails = data.model_info;
                     const dataroles = data.model_dataroles;
 
+                    // Model Details HTML
                     const modelDetailsHTML = `
                         <h3>Model: ${modelDetails.model_name}</h3>
                         <p><strong>Estimator Class:</strong> ${modelDetails.estimator_class}</p>
@@ -157,15 +206,39 @@
                         <pre>${JSON.stringify(modelDetails.estimator_parameters, null, 2)}</pre>
                     `;
 
-                    const datarolesHTML = dataroles.map(role => `
-                        <p><strong>${role.datarole}:</strong> ${role.column_name} (${role.datatype}, ${role.datalevel})</p>
-                    `).join('');
+                    // Dataroles Table HTML
+                    const datarolesTableHTML = `
+                        <h4>Data Roles:</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Column Name</th>
+                                    <th>Data Level</th>
+                                    <th>Data Role</th>
+                                    <th>Data Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${dataroles.map(role => {
+                                    const isTargetRole = role.datarole === 'target';
+                                    return `
+                                        <tr>
+                                            <td ${isTargetRole ? 'style="text-decoration: underline;"' : ''}>${role.column_name}</td>
+                                            <td ${isTargetRole ? 'style="text-decoration: underline;"' : ''}>${role.datalevel}</td>
+                                            <td ${isTargetRole ? 'style="text-decoration: underline;"' : ''}>${role.datarole}</td>
+                                            <td ${isTargetRole ? 'style="text-decoration: underline;"' : ''}>${role.datatype}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    `;
 
+                    // Inject model details and dataroles table into the page
                     document.getElementById('model-details').innerHTML = `
                         <div>
                             ${modelDetailsHTML}
-                            <h4>Data Roles:</h4>
-                            ${datarolesHTML}
+                            ${datarolesTableHTML}
                         </div>
                     `;
                 })
@@ -174,6 +247,5 @@
                 });
         }
     </script>
-
 </body>
 </html>
