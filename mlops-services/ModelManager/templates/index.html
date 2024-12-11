@@ -350,6 +350,7 @@
                 console.error('Error generating batch scoring:', error);
                 alert('An unexpected error occurred. Please try again.');
             });
+            loadBatchScoreInfo(modelName)
         }
 
         function executeBatchScoring() {
@@ -357,30 +358,34 @@
             const fileInput = document.getElementById('file-upload');
             const hasHeaders = document.getElementById('has-headers').checked;
 
+            // Sprawdzenie, czy plik został wybrany
             if (!fileInput.files.length) {
                 alert('Please upload a file before executing scoring.');
                 return;
             }
 
+            // Tworzymy obiekt FormData do wysyłki (przekazujemy tylko plik, bez 'has_headers')
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
-            formData.append('has_headers', hasHeaders.toString());  // Przekazujemy has_headers jako string ("true"/"false")
 
-            fetch(`/${modelName}/execute-batch-scoring`, {
+            // Wykonujemy zapytanie fetch do API z has_headers jako część URL
+            const url = `/${encodeURIComponent(modelName)}/execute-batch-scoring?has_headers=${hasHeaders}`;
+
+            fetch(url, {
                 method: 'POST',
                 body: formData,
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.detail) {
-                        alert(data.detail);
-                    } else {
-                        alert('Unexpected response format');
-                    }
-                })
-                .catch(error => {
-                    alert(`An unexpected error occurred: ${error}`);
-                });
+            .then(response => response.json())
+            .then(data => {
+                if (data.detail) {
+                    alert(data.detail);  // Wyświetlamy szczegóły odpowiedzi (np. komunikat o sukcesie lub błędzie)
+                } else {
+                    alert('Unexpected response format');
+                }
+            })
+            .catch(error => {
+                alert(`An unexpected error occurred: ${error}`);  // Obsługa błędów sieciowych
+            });
         }
     </script>
 </body>
