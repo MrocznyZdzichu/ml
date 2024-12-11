@@ -138,16 +138,25 @@ async def api_generate_batch_scoring(request: Request, model_name: str, replace:
     if addons.check_batchfile_created(model_name) and replace == False:
         return JSONResponse({"detail": f"Batch scoring code already exists for {model_name}."}, status_code=200)
     
+    # Try to generate scorefile
     try:
         model = ModelManager.load_model(model_name, in_docker=IN_DOCKER)
         model.generate_batch_score_code()
     except Exception as e:
-        return JSONResponse({"detail": f"Error generating batch scoring code for {model_name}: {str(e)}"}, status_code=500)
+        msg=f'Error generating batch scoring code for {model_name}: {str(e)}'
+        addons.log_batchscore_generation(METADATA_SERVER_URL, model_name, status='Failure', details=msg)
+        return JSONResponse({"detail": f"msg"}, status_code=500)
     
+    # Check if it is indeed created
     if not addons.check_batchfile_created(model_name):
-        return JSONResponse({"detail": 'Generator method did not fail but batchscore does not exist.'}, status_code=500)
+        msg = 'Generator method did not fail but batchscore does not exist.'
+        addons.log_batchscore_generation(METADATA_SERVER_URL, model_name, status='Failure', details=msg)
+        return JSONResponse({"detail": msg}, status_code=500)
     
-    return JSONResponse({"detail": f"Successfully generated batch scoring code for {model_name}."}, status_code=200)
+    msg = f"Successfully generated batch scoring code for {model_name}."
+    addons.log_batchscore_generation(METADATA_SERVER_URL, model_name, status='Success', details=msg)
+
+    return JSONResponse({"detail": msg}, status_code=200)
 
 @app.post("/{model_name}/execute-batch-scoring")
 async def api_execute_batch_scoring(request: Request, model_name: str, has_headers: bool, file: UploadFile = File(...)):
