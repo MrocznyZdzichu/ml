@@ -162,7 +162,15 @@
             <div id="batch-score-info">
                 <p>Loading batch scoring information...</p>
             </div>
+            <div id="batch-score-actions">
+                <label>
+                    <input type="checkbox" id="replace-checkbox">
+                    Replace existing scoring code
+                </label>
+                <button onclick="generateBatchScoring()">Generate Batch Scoring Code</button>
+            </div>
         </div>
+        
         
     </div>
 
@@ -293,6 +301,38 @@
                 .catch(error => {
                     batchInfoDiv.innerHTML = `<p>Error fetching batch score file existence: ${error}</p>`;
                 });
+        }
+
+        function generateBatchScoring() {
+            const replace = document.getElementById('replace-checkbox').checked;
+            const modelName = document.querySelector('.model-list li.active')?.textContent.trim();
+
+            if (!modelName) {
+                alert("Please select a model first.");
+                return;
+            }
+
+            console.log(`Sending request to: /${modelName}/generate-batch-scoring?replace=${replace}`);
+            
+            fetch(`/${modelName}/generate-batch-scoring?replace=${replace}`, {
+                method: "POST",
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.detail || "Unexpected error occurred.");
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert(data.detail); // Wyświetlenie komunikatu z odpowiedzi
+                loadBatchScoreInfo(modelName); // Odśwież informacje o batch scoring
+            })
+            .catch(error => {
+                console.error("Error generating batch scoring code:", error.message);
+                alert(`Error: ${error.message}`);
+            });
         }
     </script>
 </body>

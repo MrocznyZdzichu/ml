@@ -130,47 +130,24 @@ async def api_batchscode_modtime(model_name: str):
 
 @app.post("/{model_name}/generate-batch-scoring")
 async def api_generate_batch_scoring(request: Request, model_name: str, replace: bool = False):
-    logger.info(f"Generating batch score code for {model_name}")
     reg_models = await registered_models()
     
     if model_name not in reg_models:
-        message = "Requested model is not registered."
         return JSONResponse({"detail" : f"Model {model_name} not found."}, status_code=404)
     
-    scorefile_path = os.path.join('model-repository', model_name, 'score_batch.py')
-    if os.path.exists(scorefile_path) and not replace:
-        logger.info(f"Score batch file already exists for {model_name}.")
-        return JSONResponse(
-            {"requires_confirmation": True, "message": f"Batch scoring code already exists for {model_name}. Replace?"},
-            status_code=200
-        )
+    if addons.check_batchfile_created(model_name) and replace == False:
+        return JSONResponse({"detail": f"Batch scoring code already exists for {model_name}."}, status_code=200)
     
     try:
         model = ModelManager.load_model(model_name, in_docker=IN_DOCKER)
         model.generate_batch_score_code()
     except Exception as e:
-        logger.error("Error during batch scoring code generation", exc_info=True)
-        message = f"Error generating batch scoring code for {model_name}: {e}"
-        return templates.TemplateResponse(
-            "index.html",
-            {"request": request, "registered_models": reg_models, "message": message},
-            status_code=500
-        )
+        return JSONResponse({"detail": f"Error generating batch scoring code for {model_name}: {str(e)}"}, status_code=500)
     
     if not addons.check_batchfile_created(model_name):
-        message = 'Generator method did not fail but batchscore does not exist.'
-        return templates.TemplateResponse(
-            "index.html",
-            {"request": request, "registered_models": reg_models, "message": message},
-            status_code=500
-        )
+        return JSONResponse({"detail": 'Generator method did not fail but batchscore does not exist.'}, status_code=500)
     
-    message = f"Successfully generated batch scoring code for {model_name}."
-    return templates.TemplateResponse(
-        "index.html",
-        {"request": request, "registered_models": reg_models, "message": message},
-        status_code=200
-    )
+    return JSONResponse({"detail": f"Successfully generated batch scoring code for {model_name}."}, status_code=200)
 
 @app.post("/{model_name}/execute-batch-scoring")
 async def api_execute_batch_scoring(request: Request, model_name: str, has_headers: bool, file: UploadFile = File(...)):
