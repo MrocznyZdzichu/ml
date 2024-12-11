@@ -148,8 +148,8 @@
                     <td>{{ model }}</td>
                     <td>
                         <div class="generate-score" style="display: inline;">
-                            <form action="/{{ model }}/generate-batch-scoring" method="post" style="display: inline;">
-                                <button type="submit">Generate Batch Scoring</button>
+                            <form id="generateScoreForm-{{ loop.index }}" action="/{{ model }}/generate-batch-scoring" method="post" style="display: inline;">
+                                <button type="button" onclick="checkAndGenerate('{{ model }}', '{{ loop.index }}')">Generate Batch Scoring</button>
                             </form>
                         </div>
                         <div class="file-upload" style="display: inline;">
@@ -169,6 +169,12 @@
         <h2>Does the CSV file contain headers?</h2>
         <button id="csvYesButton" onclick="submitForm(true)">Yes</button>
         <button id="csvNoButton" onclick="submitForm(false)">No</button>
+    </div>
+
+    <div id="replaceModal" class="modal">
+        <h2>Batch scoring code already exists. Replace?</h2>
+        <button id="replaceYesButton" onclick="replaceBatchScore(true)">Yes</button>
+        <button id="replaceNoButton" onclick="replaceBatchScore(false)">No</button>
     </div>
 
     <script>
@@ -197,6 +203,44 @@
 
         window.onclick = function(event) {
             const modal = document.getElementById('csvModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+    <script>
+        async function checkAndGenerate(modelName, formIndex) {
+            const response = await fetch(`/${modelName}/generate-batch-scoring`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ replace: false })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.requires_confirmation) {
+                    const modal = document.getElementById('replaceModal');
+                    modal.style.display = 'block';
+                    window.currentModel = modelName;
+                    window.currentFormIndex = formIndex;
+                } else {
+                    document.getElementById(`generateScoreForm-${formIndex}`).submit();
+                }
+            } else {
+                console.error('Error generating batch scoring code');
+            }
+        }
+        function replaceBatchScore(replace) {
+            const form = document.getElementById(`generateScoreForm-${window.currentFormIndex}`);
+            form.action = `/${window.currentModel}/generate-batch-scoring?replace=${replace}`;
+            form.submit();
+
+            const modal = document.getElementById('replaceModal');
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('replaceModal');
             if (event.target === modal) {
                 modal.style.display = 'none';
             }
