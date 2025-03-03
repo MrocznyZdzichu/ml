@@ -1,6 +1,9 @@
 import os
 import requests
+import pandas as pd
+import hashlib
 from fastapi import HTTPException
+from datetime import datetime
 
 
 def log_batchscore_generation(metadata_server_url, model_name, status, details):
@@ -32,9 +35,6 @@ def check_batchfile_created(model_name):
     path = os.path.join('model-repository', model_name, 'score_batch.py')
     return _if_file_exist(path)
 
-import os
-from datetime import datetime
-
 def check_batchfile_modtime(model_name):
     """
     Checks the modification time of the batch scoring file for a given model.
@@ -48,3 +48,13 @@ def check_batchfile_modtime(model_name):
         return datetime.fromtimestamp(mod_time)
     else:
         return None
+
+def add_row_id_to_csv(input_file_path, output_file_path):
+    df = pd.read_csv(input_file_path)    
+
+    def generate_row_id(row):
+        row_string = '_'.join(str(v) for v in row)
+        return hashlib.md5(row_string.encode('utf-8')).hexdigest()
+    
+    df["row_id"] = df.apply(generate_row_id, axis=1)  
+    df.to_csv(output_file_path, index=False)

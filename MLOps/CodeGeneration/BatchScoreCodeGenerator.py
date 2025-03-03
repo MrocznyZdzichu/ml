@@ -47,6 +47,7 @@ def validate_input_data(data):
 
 def generate_row_id(row):
     row_string = '_'.join(str(v) for v in row)
+    print(row_string)
     return hashlib.md5(row_string.encode('utf-8')).hexdigest()
 
 def score_batch(input_data_path, has_headers=True):
@@ -58,8 +59,8 @@ def score_batch(input_data_path, has_headers=True):
             raise ValueError(f"The number of columns in the CSV ({{data.shape[1]}}) does not match the number of required input features ({{len(REQUIRED_FEATURES)}}).")
         print("Warning: The provided CSV does not contain headers. Assuming the columns are in the correct order.")
         data.columns = REQUIRED_FEATURES
-    data = validate_input_data(data)
     row_ids = data.apply(generate_row_id, axis=1)
+    data = validate_input_data(data)
     model = load_model()
     predictions = model.predict(data)
     output_df = pd.DataFrame({{

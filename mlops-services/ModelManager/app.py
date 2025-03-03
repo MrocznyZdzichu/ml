@@ -163,9 +163,11 @@ async def api_generate_batch_scoring(request: Request, model_name: str, replace:
 
 @app.post("/{model_name}/execute-batch-scoring")
 async def api_execute_batch_scoring(request: Request, model_name: str, has_headers: bool, file: UploadFile = File(...)):
+    logger.info(f"Executing batch scoring for model {model_name}. Checking if the model is registered.")
     reg_models = await registered_models()
 
     if model_name not in reg_models:
+        logger.error(f'Model {model_name} not found in metadata.')
         return JSONResponse({"detail" : f"Model {model_name} not found."}, status_code=404)
     
     base_path        = os.path.join('model-repository', model_name)
@@ -178,9 +180,14 @@ async def api_execute_batch_scoring(request: Request, model_name: str, has_heade
     with open(input_file_path, "wb") as f:
         f.write(file.file.read())
 
+    logger.info(f"Input file saved to: {input_file_path}.")
+
     if not addons.check_batchfile_created(model_name):
+        logger.error(f"Batch scoring script not found for model {model_name}")
         raise HTTPException(status_code=404, detail=f"Scoring script not found for model {model_name}")
     
+    logger.info('Scoring script found. Executing batch scoring.')
+
     if has_headers:
         command = ["python", scorecode_path, input_file_path]
     else:
@@ -189,6 +196,10 @@ async def api_execute_batch_scoring(request: Request, model_name: str, has_heade
     result = subprocess.run(command, capture_output=True, text=True)
 
     if result.returncode != 0:
+        logger.error(f"Error executing batch scoring for {model_name}. Error: {result.stderr}")
         return JSONResponse({"detail": result.stderr}, status_code=500)
+    
+    logger.info(f"Batch scoring executed successfully for {model_name}. Output: {result.stdout}. Append row_id to input file.")
+    addons.add_row_id_to_csv(input_file_path, input_file_path)
     
     return JSONResponse({"detail": f"Batch scoring executed successfully for {model_name}.\nOutput: {result.stdout}"})
