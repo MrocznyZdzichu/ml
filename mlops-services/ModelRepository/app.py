@@ -4,6 +4,10 @@ from fastapi.templating import Jinja2Templates
 import os
 import shutil
 import httpx
+import logging
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s:\t%(asctime)s\t\t%(message)s")
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -108,12 +112,16 @@ async def api_register_model(model_name: str):
     
 @app.post("/unregister-model/{model_name}")
 async def unregister_model(model_name: str):
+    logger.info(f"Unregistering model {model_name}")
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(f"{MODEL_MANAGER_URL}/{model_name}/unregister-model")
         response.raise_for_status()  
+        logger.info(f'Successfully unregistered model {model_name}')
         return RedirectResponse(url="/", status_code=303)
     except httpx.RequestError as e:
+        logger.error(f"Error unregistering model {model_name}: {e}")
         raise HTTPException(status_code=500, detail=f"Error unregistering model: {e}")
     except httpx.HTTPStatusError as e:
+        logger.error(f"Error unregistering model {model_name}: {e}")
         raise HTTPException(status_code=e.response.status_code, detail=f"Error: {e.response.text}")

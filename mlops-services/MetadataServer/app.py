@@ -4,10 +4,14 @@ from typing import List, Optional
 
 import requests
 import os
+import logging
 
 from MLOps.DBManager import DBManager 
 from MLOps import MetadataManager
 from MLOps import Model
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s:\t%(asctime)s\t\t%(message)s")
+logger = logging.getLogger(__name__)
 
 IN_DOCKER = os.getenv('IN_DOCKER') == 'Yes'
 
@@ -139,8 +143,19 @@ async def api_get_model_metadata(model_name: str):
 
 @app.post("/models/{model_name}/unregister-model")
 async def api_unregister_model(model_name: str):
+    logger.info(f"Unregistering model {model_name}")
+    logger.info(f"Fetching model's ID")
     model_id = MetadataManager.get_model_id(dbm, model_name)
-    MetadataManager.unregister_model(dbm, model_id)
+    logger.info(f"Attempting to unregister the model of ID: {model_id}")
+
+    try:
+        MetadataManager.unregister_model(dbm, model_id)
+    except Exception as e:
+        logger.error(f"Error unregistering model {model_name}: {e}")
+    
+        raise HTTPException(status_code=500, detail=f"Error unregistering model: {e}")
+    logger.info(f"Model '{model_name}' successfully unregistered.")
+    return {"message": f"Model '{model_name}' successfully unregistered."}
 
 
 @app.post("/models/{model_name}/batchscores/log_generation")

@@ -12,7 +12,7 @@ from MLOps import ModelManager
 from MLOps import DBManager
 import addons
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(levelname)s:\t%(asctime)s\t\t%(message)s")
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
@@ -89,9 +89,11 @@ async def model_metadata(model_name: str):
 
 @app.post("/{model_name}/unregister-model")
 async def api_unregister_model(model_name: str):
+    logger.info(f"Unregistering model {model_name}")
     try:
         url = f"{METADATA_SERVER_URL}/models/{model_name}/unregister-model"
         response = requests.post(url)
+        logger.info(response.text)
 
         if response.status_code == 200:
             return response.json()
@@ -101,6 +103,7 @@ async def api_unregister_model(model_name: str):
                 detail=f"Error from metadata-server: {response.text}"
             )
     except Exception as e:
+        logger.error(f"Error unregistering model {model_name}: {e}")
         raise HTTPException(status_code=500, detail=f"Error retrieving model metadata: {e}")
     
 @app.get("/{model_name}/has-batch-scorecode")
